@@ -36,16 +36,23 @@ def main(index, duration):
     tables = driver.find_elements(By.CSS_SELECTOR, "tbody")
     # Search the table
     table_rows = tables[1].find_elements(By.CSS_SELECTOR, "tr")
-    for i in range(0, len(table_rows)):
+    for i in range(1, len(table_rows)):
         table_cells = table_rows[i].find_elements(By.CSS_SELECTOR, "td")
-        # First cell of row
-        # Try is there since the shift can appear in the first row
-        multiplicity.append(int(table_cells[0].text))
+        try:
+            multiplicity.append(int(table_cells[0].text))
+        except(ValueError):
+            continue
         # Final cell of row
         symmetries = table_cells[3].find_elements(By.CSS_SELECTOR, "a")
         coordinates.extend([sequence.text for sequence in symmetries])
     
     # If there is an additional parameter the multiplicity gets larger
+    
+    moved_coordinates = tables[1].find_elements(By.CSS_SELECTOR, "td")
+    for i in range(len(moved_coordinates)):
+        if(bool(re.match(r"\(.*\)\s\+\s\(.*\)", moved_coordinates[i].text))):
+            coordinate_deviation = moved_coordinates[i].text
+            
     divider = 1
     if(coordinate_deviation != ""):
         match(coordinate_deviation.count("(")):
