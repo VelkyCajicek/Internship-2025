@@ -32,6 +32,7 @@ def main(index, duration):
     multiplicity = []
     coordinates = []
     coordinate_deviation = ""
+    wyckoff_letters = []
     # Since the site has a table hidden at the top it must be done this way
     tables = driver.find_elements(By.CSS_SELECTOR, "tbody")
     # Search the table
@@ -43,6 +44,7 @@ def main(index, duration):
         except(ValueError):
             continue
         # Final cell of row
+        wyckoff_letters.extend(table_cells[1].text)
         symmetries = table_cells[3].find_elements(By.CSS_SELECTOR, "a")
         coordinates.extend([sequence.text for sequence in symmetries])
     
@@ -52,7 +54,7 @@ def main(index, duration):
     for i in range(len(moved_coordinates)):
         if(bool(re.match(r"\(.*\)\s\+\s\(.*\)", moved_coordinates[i].text))):
             coordinate_deviation = moved_coordinates[i].text
-            
+    
     divider = 1
     if(coordinate_deviation != ""):
         match(coordinate_deviation.count("(")):
@@ -67,7 +69,7 @@ def main(index, duration):
     driver.back()
     time.sleep(duration)
     
-    return split_list(coordinates, multiplicity), multiplicity, coordinate_deviation, divider
+    return split_list(coordinates, multiplicity), multiplicity, coordinate_deviation, divider, wyckoff_letters
 
 if __name__ == "__main__":
     # Wait time
@@ -80,14 +82,14 @@ if __name__ == "__main__":
     driver.implicitly_wait(5)
     
     for i in range(1,231):
-        final_list, table_multiplicities, coordinate_deviation, divider = main(i, duration)
+        final_list, table_multiplicities, coordinate_deviation, divider, wyckoff_letters = main(i, duration)
 
         with open("wyckoff_positions_3D.txt", "a") as file:
             file.write(f"# {i} {coordinate_deviation}\n")
             for i in range(len(final_list)):
                     if(coordinate_deviation != ""):
-                        file.write(f"{table_multiplicities[i] * divider} : {final_list[i]} \n")
+                        file.write(f"{table_multiplicities[i] * divider} : {wyckoff_letters[i]} : {final_list[i]} \n")
                     else:
-                        file.write(f"{table_multiplicities[i]} : {final_list[i]} \n")
+                        file.write(f"{table_multiplicities[i]} : {wyckoff_letters[i]} : {final_list[i]} \n")
     
     driver.quit()
