@@ -25,6 +25,7 @@ def main(index, duration):
     multiplicity = []
     coordinates = []
     coordinate_deviation = ""
+    wyckoff_letters = []
     # Since the site has a table hidden at the top it must be done this way
     tables = driver.find_elements(By.CSS_SELECTOR, "tbody")
     # Search the table
@@ -39,6 +40,7 @@ def main(index, duration):
         except(ValueError):
             coordinate_deviation = table_cells[0].text
             continue
+        wyckoff_letters.extend(table_cells[1].text)
         # Final cell of row
         symmetries = table_cells[3].find_elements(By.CSS_SELECTOR, "a")
         coordinates.extend([sequence.text for sequence in symmetries])
@@ -52,7 +54,7 @@ def main(index, duration):
     driver.back()
     time.sleep(duration)
     
-    return split_list(coordinates, multiplicity), multiplicity, coordinate_deviation
+    return split_list(coordinates, multiplicity), multiplicity, coordinate_deviation, wyckoff_letters
     
         
 if __name__ == "__main__":
@@ -67,14 +69,14 @@ if __name__ == "__main__":
     driver.implicitly_wait(5)
 
     for i in range(1, 18):
-        final_list, multiplicity, coordinate_deviation = main(i, duration)
+        final_list, multiplicity, coordinate_deviation, wyckoff_letters = main(i, duration)
         
         with open("wyckoff_positions_2D.txt", "a") as file:
             file.write(f"# {i} {coordinate_deviation}\n")
             for i in range(len(final_list)):
                 if(coordinate_deviation != ""):
-                    file.write(f"{multiplicity[i] * 2} : {final_list[i]} \n")
+                    file.write(f"{multiplicity[i] * 2} : {wyckoff_letters[i]} : {final_list[i]} \n")
                 else:
-                    file.write(f"{multiplicity[i]} : {final_list[i]} \n")
+                    file.write(f"{multiplicity[i]} : {wyckoff_letters[i]} : {final_list[i]} \n")
     
     driver.quit()
