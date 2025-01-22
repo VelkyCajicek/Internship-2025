@@ -36,7 +36,7 @@ def extract_bracket_values(input_string):
 
     return x_values, y_values
 
-# General formula
+# General formula (which is useless)
 # x(new) = (x-x(min))/(x(max) - x(min))
 # y(new) = (y-y(min))/(x(max) - x(min))
 

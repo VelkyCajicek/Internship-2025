@@ -1,5 +1,5 @@
 import os
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import numpy as np
 import re
 # Changes path of working directory
@@ -98,7 +98,7 @@ def check_for_point(points_x : list, points_y : list, x_point : float, y_point :
                 return False
     return True
 
-def coordinate_shift(min_x, min_y, max_x, max_y, x = None, y = None):
+def coordinate_shift(min_x, min_y, max_x, max_y, x = None, y = None): # Currently incorrect obviously
     # Try must be here if there is no coordinate shift and you have the point [0,0]
     # This is all assuming points with a different letter arent moved
     try:
@@ -107,16 +107,13 @@ def coordinate_shift(min_x, min_y, max_x, max_y, x = None, y = None):
     except(ZeroDivisionError):
         return float(0)
 
-def local_star_discrepancy():
-    pass
-
 if __name__ == "__main__":
     points_x = []
     points_y = []
     multiplicities = []
     heatmap_bool = True
     # User input here for now
-    test_input = "11fea"
+    test_input = "17f"
     
     user_input_list = obtain_user_input(test_input)
     axis_strings, multiplicities = obtain_axis_data(user_input_list)
@@ -129,21 +126,4 @@ if __name__ == "__main__":
     x_axis = np.array(points_x)
     y_axis = np.array(points_y)
 
-    if(heatmap_bool):
-        # Heatmap
-        heatmap, xedges, yedges = np.histogram2d(x_axis, y_axis, bins=50)
-        extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
-        plt.clf()
-        # Good cmaps: seismic, PiYG 
-        plt.imshow(heatmap.T, extent=extent, origin='lower', interpolation='bilinear', cmap="seismic")
-        plt.title(f"{concatenated_user_input_list} (N = {sum(multiplicities)}, A = 2)")
-        plt.xlabel(f"{user_input_list[0]}{user_input_list[1]}")
-        plt.ylabel(f"{user_input_list[0]}{user_input_list[2]}")
-    else:
-        # Scatter plot
-        plt.scatter(x_axis,y_axis)
-        plt.title(f"{concatenated_user_input_list} (N = {sum(multiplicities)}, A = 2)")
-        plt.xlabel(f"{user_input_list[0]}{user_input_list[1]}")
-        plt.ylabel(f"{user_input_list[0]}{user_input_list[2]}")
-
-    plt.show()    
+    print(points_x, points_y)
