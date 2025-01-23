@@ -1,5 +1,5 @@
 import os
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import numpy as np
 import re
 # Changes path of working directory
@@ -48,9 +48,7 @@ def obtain_axis_data(input_info_list : list):
 
     return axis_strings, multiplicities
 
-def generate_points(points_x : list, points_y : list, axis_string : str):
-    # Find the max and minumum values
-    min_x = min_y = max_x = max_y = 0
+def generate_points_1A(points_x : list, points_y : list, axis_string : str):
     coordinates = re.findall(r"\(.*,.*\)", axis_string)[0].split("',")
     # Values to transform plane
     for i in range(len(coordinates)):
@@ -60,18 +58,6 @@ def generate_points(points_x : list, points_y : list, axis_string : str):
                           #.replace("2", "2*")
                           #.replace("3", "3*")
                           .strip())
-        # Finds maximums and minima
-        # Also not too proud of this
-        temp_coords = coordinates[i].split(",")
-        if(min_x > eval(temp_coords[0].replace("x", "1"))):
-            min_x = eval(temp_coords[0].replace("x", "1"))
-        if(max_x < eval(temp_coords[0].replace("x", "1"))):
-            max_x = eval(temp_coords[0].replace("x", "1"))
-        if(min_y > eval(temp_coords[1].replace("x", "1"))):
-            min_y = eval(temp_coords[1].replace("x", "1"))
-        if(max_y < eval(temp_coords[1].replace("x", "1"))):
-            max_y = eval(temp_coords[1].replace("x", "1"))
-
     # Plot points        
     for i in range(len(coordinates)):
         temp_coords = coordinates[i].split(",")
@@ -80,14 +66,38 @@ def generate_points(points_x : list, points_y : list, axis_string : str):
             x_point = round(eval(temp_coords[0].replace("x", str(value / 100))), 2)
             y_point = round(eval(temp_coords[1].replace("x", str(value / 100))), 2)
             
-            #points_x.append(coordinate_shift(min_x, min_y, max_x, max_y, x_point))
-            #points_y.append(coordinate_shift(min_x, min_y, max_x, max_y, None, y_point))            
+            # Assuming there cant be more than 1 point in one spot
+            if(check_for_point(points_x, points_y, x_point, y_point)): 
+                # Assuming multiple points go in the same spot
+                points_x.append(coordinate_shift_modulo(x_point))
+                points_y.append(coordinate_shift_modulo(y_point))
+            else:
+                continue
+
+def generate_points_2A(points_x : list, points_y : list, axis_string : str):
+    coordinates = re.findall(r"\(.*,.*\)", axis_string)[0].split("',")
+    # Values to transform plane
+    for i in range(len(coordinates)):
+        # Also should be improved, removes shit
+        coordinates[i] = (str(coordinates[i]).replace("'", "").replace("(", "").replace(")", "")
+                          # These two lines to ensure the other options
+                          #.replace("2", "2*")
+                          #.replace("3", "3*")
+                          .strip())
+    # Plot points        
+    for i in range(len(coordinates)):
+        temp_coords = coordinates[i].split(",")
+        for x_value in range(0, 100):
+            for y_value in range(0,100):
+                # Rounding may be a mistake
+                x_point = round(eval(temp_coords[0].replace("x", str(x_value / 100)).replace("y", str(y_value / 100))), 2)
+                y_point = round(eval(temp_coords[1].replace("x", str(x_value / 100)).replace("y", str(y_value / 100))), 2)
             
             # Assuming there cant be more than 1 point in one spot
             if(check_for_point(points_x, points_y, x_point, y_point)): 
                 # Assuming multiple points go in the same spot
-                points_x.append(coordinate_shift(min_x, min_y, max_x, max_y, x_point))
-                points_y.append(coordinate_shift(min_x, min_y, max_x, max_y, None, y_point))
+                points_x.append(coordinate_shift_modulo(x_point))
+                points_y.append(coordinate_shift_modulo(y_point))
             else:
                 continue
 
@@ -98,7 +108,7 @@ def check_for_point(points_x : list, points_y : list, x_point : float, y_point :
                 return False
     return True
 
-def coordinate_shift(min_x, min_y, max_x, max_y, x = None, y = None): # Currently incorrect obviously
+def coordinate_shift_relative(min_x, min_y, max_x, max_y, x = None, y = None): # Currently incorrect obviously
     # Try must be here if there is no coordinate shift and you have the point [0,0]
     # This is all assuming points with a different letter arent moved
     try:
@@ -107,23 +117,52 @@ def coordinate_shift(min_x, min_y, max_x, max_y, x = None, y = None): # Currentl
     except(ZeroDivisionError):
         return float(0)
 
+def coordinate_shift_modulo(point):
+    return round(point % 1, 4) 
+
 if __name__ == "__main__":
     points_x = []
     points_y = []
     multiplicities = []
+
     heatmap_bool = True
     # User input here for now
     test_input = "17f"
-    
+    # This returns [multiplicity, letter1, letter2]
     user_input_list = obtain_user_input(test_input)
+
     axis_strings, multiplicities = obtain_axis_data(user_input_list)
+    
     # Must do this since fstrings hate "".join() for some reason
     concatenated_user_input_list = " ".join([str(value) for value in user_input_list])
-    
     for i in range(len(axis_strings)):
-        generate_points(points_x, points_y, axis_strings[i])
+        generate_points_2A(points_x, points_y, axis_strings[i])
     # Convert lists to numpy arrays for graphing
     x_axis = np.array(points_x)
     y_axis = np.array(points_y)
+
+    if(heatmap_bool):
+        # Heatmap
+        heatmap, xedges, yedges = np.histogram2d(x_axis, y_axis, bins=50)
+        extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
+        plt.clf()
+        # Good cmaps: seismic, PiYG 
+        plt.imshow(heatmap.T, extent=extent, origin='lower', interpolation='bilinear', cmap="seismic")
+        plt.title(f"{concatenated_user_input_list} (N = {sum(multiplicities)}, A = 2)")
+        plt.xlabel(f"{user_input_list[0]}{user_input_list[1]}")
+        try:
+            plt.ylabel(f"{user_input_list[0]}{user_input_list[2]}")
+        except(IndexError):
+            plt.ylabel("y")
+    else:
+        # Scatter plot
+        plt.scatter(x_axis,y_axis)
+        plt.title(f"{concatenated_user_input_list} (N = {sum(multiplicities)}, A = 2)")
+        plt.xlabel(f"{user_input_list[0]}{user_input_list[1]}")
+        try:
+            plt.ylabel(f"{user_input_list[0]}{user_input_list[2]}")
+        except(IndexError):
+            plt.ylabel("y")
+    plt.show()  
 
     print(points_x, points_y)
