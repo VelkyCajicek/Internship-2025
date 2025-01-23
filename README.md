@@ -8,7 +8,7 @@ Jiří Matoušek - Geometric Discrepancy : https://people.fjfi.cvut.cz/vybirja2/
 
 ### ChatGPT D* for 2d (Complicated)
 This is the general formula he gave me:
-$$D^*(P) = \begin{matrix}sup \\ (x,y) \in[0,1)^2 \end{matrix}  \left\{ \sum_{(x_i, y_i) \in P} 1_{[0,x) \times [0,y)}(x_i, y_i) - xy \mid (x, y) \in [0, 1)^2  \right\}$$
+$$D^*(P) = sup(x,y)\in [0,1)^2\left| \sum_{(x_{i},y_{i})\in P}^{} 1_{[0,x)\times [0,y)}(x_{i},y_{i}) - xy | (x,y) \in [0,1)^2\right| $$
 
 ### Meeting notes (Simpler)
 

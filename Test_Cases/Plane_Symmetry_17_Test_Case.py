@@ -1,4 +1,3 @@
-import re
 # For plotting
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,64 +9,7 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__),'../'))
 import Star_Discrepancy.Bundschuh_Zhu_Algorithm as BDZ
 
-# TODO:
-# Currently only works if there is an x and y
-
-with open("Data\wyckoff_positions_2D_New.txt", "r") as data:
-    lines = [line.strip() for line in data]
-
-def obtain_user_input(user_input : str):    
-    # This splits the code into individual chars
-    input_info_list = list(user_input)
-    # Range 3 since the multiplicity is at max a 3-digit number
-    # Merges the multiplicity numbers into one int element 
-    for i in range(0,3):
-        if(not input_info_list[i].isdigit()): 
-            input_info_list[0:i] = [int("".join(input_info_list[0:i]))]
-    
-    return input_info_list
-
-def obtain_axis_data(input_info_list : list): 
-    axis_strings = []
-    multiplicities = []
-    # Spaghetti code here, could do with some fixing 
-    for i in range(len(lines)):
-        # Yes, fr is actual syntax
-        # Checks for line with # and number
-        if(bool(re.match(fr"#\s{input_info_list[0]}$", lines[i]))):
-            # Checks for following lines
-            for j in range(1, len(lines)):
-                if(len(axis_strings) == len(input_info_list) - 1):
-                    break
-                # Checks whether it hasnt gone outside of its given sequence
-                elif(lines[i+j][0] == "#"):
-                    print("Not valid sequence")
-                    break
-                # Goes through the letters to check whether it isnt there 
-                for k in range(1, len(input_info_list)):
-                    if(input_info_list[k] in lines[i+j]):
-                        axis_strings.append(lines[i+j])
-                        # May not work for high multiplicities
-                        multiplicities.append(int(lines[i+j][0:2]))
-
-    return axis_strings, multiplicities
-
-def split_string(axis_string):
-    # Written originally by ChatGPT
-    parts = [] 
-    start = 0  
-    comma_count = 0 
-
-    for i, char in enumerate(axis_string):
-        if char == ',':
-            comma_count += 1  
-            if comma_count == 2:
-                parts.append(axis_string[start:i])
-                start = i + 1  
-                comma_count = 0  
-    parts.append(axis_string[start:])
-
-    return parts
+coordinates = ['x,y', '-y,x-y', '-x+y,-x', '-x,-y', 'y,-x+y', 'x-y,x', '-y,-x', '-x+y,y', 'x,x-y', 'y,x', 'x-y,-y', '-x,-x+y']
 
 # Removes integer part of float
 def modulo_shift(point : float) -> float:
@@ -97,7 +39,7 @@ def create_pointset(x_value : float, y_value : float, coordinates : list) -> lis
         combined_point_list.append([x_points_list[i], y_points_list[i]])
     return combined_point_list
         
-def create_heatmap_data(interpolated_points : int, txt_file_bool : bool, heatmap_bool : bool, coordinates : list) -> None:
+def create_heatmap_data(interpolated_points : int, txt_file_bool : bool, heatmap_bool : bool) -> None:
     # This is if its done in Python
     # Comment out if running on something else
     # Start
@@ -112,7 +54,7 @@ def create_heatmap_data(interpolated_points : int, txt_file_bool : bool, heatmap
     for x in range(1,interpolated_points):
         string_list = []
         for y in range(1,interpolated_points):  
-            points = create_pointset(x/interpolated_points, y/interpolated_points, coordinates)
+            points = create_pointset(x/interpolated_points,y/interpolated_points,coordinates)
             discrepancy = BDZ.Bundschuh_Zhu_ChatGPT(points, (x/interpolated_points, y/interpolated_points))
             string_list.append(f"{x/interpolated_points} {y/interpolated_points} {discrepancy}\n")
             # Progress bar
@@ -131,7 +73,10 @@ def create_heatmap_data(interpolated_points : int, txt_file_bool : bool, heatmap
     run_value += (interpolated_points**2 - run_value)
     updt(interpolated_points**2, run_value)
     print("Discrepancy calculated, Creating heatmap")
-    return x_points, y_points, discrepancies
+    # Also commented out after
+    # Start
+    plot_heatmap(x_points, y_points, discrepancies)
+    # End
     
 def updt(total, progress):
     """
@@ -150,7 +95,7 @@ def updt(total, progress):
     sys.stdout.write(text)
     sys.stdout.flush()
 
-def plot_heatmap(x_points : list, y_points : list, values : list, multiplicities : list, user_input_list : list):
+def plot_heatmap(x_points : list, y_points : list, values : list):
     # Written originally by ChatGPT
     # Define a finer grid for interpolation
     x_fine = np.linspace(min(x_points), max(x_points), 500)
@@ -166,41 +111,15 @@ def plot_heatmap(x_points : list, y_points : list, values : list, multiplicities
     plt.imshow(values_interpolated, extent=(min(x_points), max(x_points), min(y_points), max(y_points)), 
                origin='lower', cmap='seismic', aspect='auto')
     plt.colorbar(label='D*')
-    try:
-        plt.xlabel(f"{user_input_list[0]}{user_input_list[1]}")
-        plt.ylabel(f"{user_input_list[0]}{user_input_list[2]}")
-    except(IndexError):
-        plt.xlabel("X")
-        plt.ylabel("Y")
-    concatenated_user_input_list = " ".join([str(value) for value in user_input_list])
-    plt.title(f"{concatenated_user_input_list} (N = {sum(multiplicities)}, A = 2)")
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.title('17')
     plt.show()
 
 if __name__ == "__main__":
     # Main parameters
-    wyckoff_symmetry = "17f"
-    x_points_total = []
-    y_points_total = []
-    discrepancies_total = []
-    # Parameters for create_heatmap_data function
     generate_txt_file = False
     generate_heatmap = True
     interpolations = 100
     # Run main
-    user_input_list = obtain_user_input(wyckoff_symmetry)
-    axis_strings, multiplicities = obtain_axis_data(user_input_list)
-    
-    for i in range(len(axis_strings)):
-        # Spread on to 3 lines for readability
-        axis_strings[i] = "".join(re.findall(r"\(.*,.*\)", axis_strings[i]))
-        axis_strings[i] = axis_strings[i].replace("(", "").replace(")", "").replace("'", "").strip()
-        axis_strings[i] = split_string(axis_strings[i])
-    
-    for i in range(len(axis_strings)):
-        x_points, y_points, discrepancies = create_heatmap_data(interpolations, generate_txt_file, generate_heatmap, axis_strings[i])
-        x_points_total.extend(x_points)
-        y_points_total.extend(y_points)
-        discrepancies_total.extend(discrepancies)
-    
-    
-    plot_heatmap(x_points, y_points, discrepancies, multiplicities, user_input_list)
+    create_heatmap_data(interpolations, generate_txt_file, generate_heatmap)

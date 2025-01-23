@@ -10,9 +10,19 @@ def create_test_case():
     return points_x, points_y
 
 
-def Bundschuh_Zhu_ChatGPT(points):
+def Bundschuh_Zhu_ChatGPT(points, area=(1.0, 1.0)):
     points = np.array(points)
+    width, height = area
+
+    # Filter points to include only those within the specified area
+    points = points[(points[:, 0] <= width) & (points[:, 1] <= height) & (points[:, 0] >= 0) & (points[:, 1] >= 0)]
     N, d = points.shape
+
+    if d != 2:
+        raise ValueError("This function is designed for 2D points only.")
+
+    # Sort points along each dimension
+    sorted_points = [np.sort(points[:, i]) for i in range(d)]
 
     # Initialize discrepancy
     max_discrepancy = 0.0
@@ -21,7 +31,7 @@ def Bundschuh_Zhu_ChatGPT(points):
     for i in range(N):
         # Compute the volume of the box [0, z) for the current point z
         z = points[i, :]
-        box_volume = np.prod(z)
+        box_volume = (z[0] / width) * (z[1] / height)
 
         # Count the points in the box [0, z)
         points_in_box = np.all(points <= z, axis=1).sum()
@@ -31,7 +41,7 @@ def Bundschuh_Zhu_ChatGPT(points):
         discrepancy = abs(empirical_density - box_volume)
         max_discrepancy = max(max_discrepancy, discrepancy)
 
-    return max_discrepancy
+    return round(max_discrepancy, 4)
 
 
 def Bundschuh_Zhu_Algorithm(points_x, points_y):
