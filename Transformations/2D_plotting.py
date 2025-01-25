@@ -9,6 +9,8 @@ import os
 # Goes one directory down
 sys.path.append(os.path.join(os.path.dirname(__file__),'../'))
 import Star_Discrepancy.Bundschuh_Zhu_Algorithm as BDZ
+# For concatenating multiple lists
+import itertools
 
 # TODO:
 # Currently only works if there is an x and y
@@ -22,9 +24,11 @@ def obtain_user_input(user_input : str):
     # Range 3 since the multiplicity is at max a 3-digit number
     # Merges the multiplicity numbers into one int element 
     for i in range(0,3):
-        if(not input_info_list[i].isdigit()): 
-            input_info_list[0:i] = [int("".join(input_info_list[0:i]))]
-    
+        try:
+            if(not input_info_list[i].isdigit()): 
+                input_info_list[0:i] = [int("".join(input_info_list[0:i]))]
+        except(IndexError):
+            break
     return input_info_list
 
 def obtain_axis_data(input_info_list : list): 
@@ -42,7 +46,7 @@ def obtain_axis_data(input_info_list : list):
                 # Checks whether it hasnt gone outside of its given sequence
                 elif(lines[i+j][0] == "#"):
                     print("Not valid sequence")
-                    break
+                    sys.exit()
                 # Goes through the letters to check whether it isnt there 
                 for k in range(1, len(input_info_list)):
                     if(input_info_list[k] in lines[i+j]):
@@ -130,8 +134,9 @@ def create_heatmap_data(interpolated_points : int, txt_file_bool : bool, heatmap
                     file.write(string_list[i])
     run_value += (interpolated_points**2 - run_value)
     updt(interpolated_points**2, run_value)
-    print("Discrepancy calculated, Creating heatmap")
+    
     return x_points, y_points, discrepancies
+
     
 def updt(total, progress):
     """
@@ -178,7 +183,7 @@ def plot_heatmap(x_points : list, y_points : list, values : list, multiplicities
 
 if __name__ == "__main__":
     # Main parameters
-    wyckoff_symmetry = "17f"
+    wyckoff_symmetry = "6i"
     x_points_total = []
     y_points_total = []
     discrepancies_total = []
@@ -196,11 +201,10 @@ if __name__ == "__main__":
         axis_strings[i] = axis_strings[i].replace("(", "").replace(")", "").replace("'", "").strip()
         axis_strings[i] = split_string(axis_strings[i])
     
-    for i in range(len(axis_strings)):
-        x_points, y_points, discrepancies = create_heatmap_data(interpolations, generate_txt_file, generate_heatmap, axis_strings[i])
-        x_points_total.extend(x_points)
-        y_points_total.extend(y_points)
-        discrepancies_total.extend(discrepancies)
-    
-    
+    print("D* calculated, Creating heatmap")
+
+    # May need to be taken out
+    #axis_strings = list(itertools.chain(axis_strings))    
+    x_points, y_points, discrepancies = create_heatmap_data(interpolations, generate_txt_file, generate_heatmap, axis_strings[0])
+
     plot_heatmap(x_points, y_points, discrepancies, multiplicities, user_input_list)
