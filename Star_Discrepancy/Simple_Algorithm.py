@@ -17,7 +17,7 @@ def find_points_inside_area(points_x : list, points_y : list, x_area_coordinate 
     for i in range(len(points_x)):
         points_shapely.append(Point(points_x[i], points_y[i]))
     # (x,y,[z]) Creates area
-    discrepancy_area = Polygon([(0,0), (0, x_area_coordinate), (y_area_coordinate, 0), (x_area_coordinate, y_area_coordinate)])
+    discrepancy_area = Polygon([(0,0), (0, y_area_coordinate), (x_area_coordinate, 0), (x_area_coordinate, y_area_coordinate)])
     # Checks whether point is in area
     for i in range(len(points_shapely)):
         if(discrepancy_area.contains(points_shapely[i])):

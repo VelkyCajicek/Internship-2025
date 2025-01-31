@@ -101,7 +101,7 @@ def create_pointset(x_value : float, y_value : float, coordinates : list) -> lis
         combined_point_list.append([x_points_list[i], y_points_list[i]])
     return combined_point_list
         
-def create_heatmap_data(interpolated_points : int, txt_file_bool : bool, heatmap_bool : bool, coordinates : list) -> None:
+def create_heatmap_data(interpolated_points : int, txt_file_bool : bool, heatmap_bool : bool, coordinates : list, user_input_list : list) -> None:
     # This is if its done in Python
     # Comment out if running on something else
     # Start
@@ -112,7 +112,7 @@ def create_heatmap_data(interpolated_points : int, txt_file_bool : bool, heatmap
     run_value = 0
     if(txt_file_bool):
         # Open .txt file / create one
-        open("17.txt", "w")
+        open(f"{user_input_list[0]}.txt", "w")
     for x in range(1,interpolated_points):
         string_list = []
         for y in range(1,interpolated_points):  
@@ -129,7 +129,7 @@ def create_heatmap_data(interpolated_points : int, txt_file_bool : bool, heatmap
                 y_points.append(y/interpolated_points)
                 discrepancies.append(discrepancy)
         if(txt_file_bool):
-            with open("17.txt", "a") as file:
+            with open(f"{user_input_list[0]}.txt", "a") as file:
                 for i in range(len(string_list)):
                     file.write(string_list[i])
     run_value += (interpolated_points**2 - run_value)
@@ -205,6 +205,6 @@ if __name__ == "__main__":
 
     # May need to be taken out
     #axis_strings = list(itertools.chain(axis_strings))    
-    x_points, y_points, discrepancies = create_heatmap_data(interpolations, generate_txt_file, generate_heatmap, axis_strings[0])
+    x_points, y_points, discrepancies = create_heatmap_data(interpolations, generate_txt_file, generate_heatmap, axis_strings[0], user_input_list)
 
     plot_heatmap(x_points, y_points, discrepancies, multiplicities, user_input_list)

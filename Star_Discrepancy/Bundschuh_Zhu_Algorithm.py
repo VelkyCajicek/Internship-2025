@@ -61,9 +61,8 @@ if __name__ == "__main__":
     points_for_CGPT = []
     for i in range(len(points_x)):
         points_for_CGPT.append([points_x[i], points_y[i]])
-    print(points_y)
     print(Bundschuh_Zhu_ChatGPT(points_for_CGPT))
-    Bundschuh_Zhu_Algorithm(points_x, points_y)
+    #Bundschuh_Zhu_Algorithm(points_x, points_y)
 
     
     
