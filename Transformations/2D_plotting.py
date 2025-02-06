@@ -9,8 +9,6 @@ import os
 # Goes one directory down
 sys.path.append(os.path.join(os.path.dirname(__file__),'../'))
 import Star_Discrepancy.Bundschuh_Zhu_Algorithm as BDZ
-# For concatenating multiple lists
-import itertools
 
 # TODO:
 # Currently only works if there is an x and y
@@ -117,7 +115,7 @@ def create_heatmap_data(interpolated_points : int, txt_file_bool : bool, heatmap
         string_list = []
         for y in range(1,interpolated_points):  
             points = create_pointset(x/interpolated_points, y/interpolated_points, coordinates)
-            discrepancy = BDZ.Bundschuh_Zhu_ChatGPT(points, (x/interpolated_points, y/interpolated_points))
+            discrepancy = BDZ.Bundschuh_Zhu_Algorithm_WH(points)
             string_list.append(f"{x/interpolated_points} {y/interpolated_points} {discrepancy}\n")
             # Progress bar
             run_value +=1
