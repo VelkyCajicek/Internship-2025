@@ -85,6 +85,9 @@ def Bundschuh_Zhu_Algorithm_TP2(pointset : list) -> float:
                 max_discrepancy = discrepancy
     return round(max_discrepancy, 8)
 
+def Bundschuh_Zhu_Algorithm_Unsorted_Y(pointset : list) -> float:
+    pass
+
 if __name__ == "__main__":
     # SUMMARY
     # Times are virtually the same and these values depend quite significantly on what order the functions are run
