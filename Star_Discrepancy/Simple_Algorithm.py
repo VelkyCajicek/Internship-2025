@@ -17,7 +17,7 @@ def find_points_inside_area(points_x : list, points_y : list, x_area_coordinate 
     for i in range(len(points_x)):
         points_shapely.append(Point(points_x[i], points_y[i]))
     # (x,y,[z]) Creates area
-    discrepancy_area = Polygon([(0,0), (0, y_area_coordinate), (x_area_coordinate, 0), (x_area_coordinate, y_area_coordinate)])
+    discrepancy_area = Polygon([(0,0), (0, y_area_coordinate), (x_area_coordinate, y_area_coordinate), (x_area_coordinate, 0), (0,0)])
     # Checks whether point is in area
     for i in range(len(points_shapely)):
         if(discrepancy_area.contains(points_shapely[i])):
@@ -28,8 +28,8 @@ def find_points_inside_area(points_x : list, points_y : list, x_area_coordinate 
 def simple_D_star(points_x : list, points_y : list, area : tuple = (1,1), interpolations : int = 100):
     discrepancies = []
     area_x, area_y = area
-    for x in range(1, area_x * interpolations):
-        for y in range(1, area_y * interpolations):
+    for x in range(0, area_x * interpolations):
+        for y in range(0, area_y * interpolations):
             points_inside_area = find_points_inside_area(points_x, points_y, x/interpolations, y/interpolations)
             discrepancies.append(abs(points_inside_area/len(points_x) - x/interpolations*y/interpolations / area_x*area_y))
     return max(discrepancies)

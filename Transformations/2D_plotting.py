@@ -183,7 +183,7 @@ def plot_heatmap(x_points : list, y_points : list, values : list, multiplicities
 
 if __name__ == "__main__":
     # Main parameters
-    wyckoff_symmetry = "6i"
+    wyckoff_symmetry = "17f"
     x_points_total = []
     y_points_total = []
     discrepancies_total = []
