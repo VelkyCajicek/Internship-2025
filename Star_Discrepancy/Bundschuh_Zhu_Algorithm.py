@@ -85,15 +85,12 @@ def Bundschuh_Zhu_Algorithm_TP2(pointset : list) -> float:
                 max_discrepancy = discrepancy
     return round(max_discrepancy, 8)
 
-def Bundschuh_Zhu_Algorithm_Unsorted_Y(pointset : list) -> float:
-    pass
-
 if __name__ == "__main__":
     # SUMMARY
     # Times are virtually the same and these values depend quite significantly on what order the functions are run
-    # TP : Put the matrice calculation into the l for loop so theoretically it could be slightly better,
+    # TP : Put the matrix calculation into the l for loop so theoretically it could be slightly better,
     #      since its one for loop less and its no longer a 2D array
-    # TP2 : Instead of sorting the entire list at each index in the y matrice,
+    # TP2 : Instead of sorting the entire list at each index in the y matrix,
     #       it inserts the next y value into to correct position inside of the array
     # All of these return the same correct values
     print(Bundschuh_Zhu_Algorithm_WH(create_test_case(3)))
