@@ -1,5 +1,6 @@
 import itertools
 import bisect
+import numpy as np
 
 # SUMMARY
 # Times are virtually the same and these values depend quite significantly on what order the functions are run
@@ -7,6 +8,7 @@ import bisect
 #      since its one for loop less and its no longer a 2D array
 # TP2 : Instead of sorting the entire list at each index in the y matrix,
 #       it inserts the next y value into to correct position inside of the array
+# Tovstik 1 & 2 : Neither work, don't understand what is meant by the n2(j) notation
 
 def create_test_case(format_value : int, decimal_places : int = 4):
     points_x = [k/32 for k in range(0,32)]
@@ -121,6 +123,81 @@ def Bundschuh_Zhu_Algorithm_Display_Coordinate(pointset : list) -> None:
                 y_coordinate = matrix_y[k]
     print(f"Star discrepancy is {round(max_discrepancy, 8)} and this was found at the point [{x_coordinate},{y_coordinate}]")
 
+def Tovstik__2D_1(pointset):
+    N = len(pointset)
+    # Sorts pointset based on x values
+    sorted_pointset =  sorted(pointset, key=lambda coord : coord[0])
+    # Extracts x and y values
+    x_values = [0.0] + [entry[0] for entry in sorted_pointset] + [1.0]
+    # The * represents "sorted", I belive you need to add the two points either way
+    y_values_unsorted = [0.0] + [entry[1] for entry in sorted_pointset] + [1.0]
+    y_values_sorted = sorted(y_values_unsorted)
+
+    d2 = max(x_values[0], y_values_unsorted[0])
+    
+    def s_function(i, j, v):
+        return max(v/N - x_values[i]*y_values_unsorted[j], x_values[i+1]*y_values_unsorted[i+1] - v/N)
+    
+    for j in range(1, N+1):   
+        v = 0
+        mu = 0
+        for i in range(1, N+1):
+            # I believe there is a typo here
+            if(y_values_sorted[i] <= y_values_unsorted[j]):
+                v += 1
+                s1 = s_function(i, j, v)
+                d2 = max(d2, s1)
+                
+                if(mu > 1):
+                    s2 = s_function(i-1, j, v-1)
+                    d2 = max(d2, s2)
+            else:
+                mu += 1
+            
+    return d2
+
+def Tovstik__2D_2(pointset):
+    N = len(pointset)
+    # Sorts pointset based on x values
+    sorted_pointset =  sorted(pointset, key=lambda coord : coord[0])
+    # Extracts x and y values
+    x_values = [0.0] + [entry[0] for entry in sorted_pointset] + [1.0]
+    # The * represents "sorted", I belive you need to add the two points either way
+    y_values_unsorted = [0.0] + [entry[1] for entry in sorted_pointset] + [1.0]
+    y_values_sorted = sorted(y_values_unsorted)
+
+    d2 = max(x_values[0], y_values_unsorted[0])
+    
+    n2 = [0 for _ in range(N)]
+    for j in range(len(n2)):
+        counter = 0
+        for i in range(0, j):
+            if(y_values_sorted[j] <= y_values_unsorted[i]): counter += 1
+        n2[j] = counter
+    
+    def s_function(i, j, v):
+        return max(v/N - x_values[i]*y_values_unsorted[j], x_values[i+1]*y_values_unsorted[i+1] - v/N)
+    
+    for j in range(1, N):   
+        v = 0
+        mu = 0
+        for i in range(1, N):
+            # I believe there is a typo here
+            if(n2[i] <= j):
+                v += 1
+                s1 = s_function(i, j, v)
+                d2 = max(d2, s1)
+                
+                if(mu > 1):
+                    s2 = s_function(i-1, j, v-1)
+                    d2 = max(d2, s2)
+            else:
+                mu += 1
+            
+    return d2
+       
 if __name__ == "__main__":
     pointset = create_test_case(3, 8)
-    Bundschuh_Zhu_Algorithm_Display_Coordinate(pointset)
+    #Bundschuh_Zhu_Algorithm_Display_Coordinate(pointset)
+    print(Tovstik__2D_1(pointset))
+    
