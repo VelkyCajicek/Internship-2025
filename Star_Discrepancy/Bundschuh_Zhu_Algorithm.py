@@ -1,9 +1,16 @@
 import itertools
 import bisect
 
-def create_test_case(format_value : int):
+# SUMMARY
+# Times are virtually the same and these values depend quite significantly on what order the functions are run
+# TP : Put the matrix calculation into the l for loop so theoretically it could be slightly better,
+#      since its one for loop less and its no longer a 2D array
+# TP2 : Instead of sorting the entire list at each index in the y matrix,
+#       it inserts the next y value into to correct position inside of the array
+
+def create_test_case(format_value : int, decimal_places : int = 4):
     points_x = [k/32 for k in range(0,32)]
-    points_y = [round((7*k/32) % 1, 4)  for k in range(0,32)]
+    points_y = [round((7*k/32) % 1, decimal_places)  for k in range(0,32)]
     # Point Shift
     # Added options so the input could be altered
     match(format_value):
@@ -85,14 +92,35 @@ def Bundschuh_Zhu_Algorithm_TP2(pointset : list) -> float:
                 max_discrepancy = discrepancy
     return round(max_discrepancy, 8)
 
+def Bundschuh_Zhu_Algorithm_Display_Coordinate(pointset : list) -> None:
+    n = len(pointset)
+    # Sorts pointset based on x values
+    sorted_pointset = sorted(pointset, key=lambda coord : coord[0])
+    # Extracts x and y values
+    x_values = [0.0] + [entry[0] for entry in sorted_pointset] + [1.0]
+    y_values = [entry[1] for entry in sorted_pointset]
+    y_matrix_values = []
+    max_discrepancy = 0
+    # Added for saving coordinate
+    x_coordinate = 0.0
+    y_coordinate = 0.0
+    for l in range(0, n+1):
+        # Using a if statement and doing it by inserting a value is still faster than re-sorting
+        if l > 0: bisect.insort(y_matrix_values, y_values[l-1])
+        matrix_y = [0.0] + y_matrix_values + [1.0]
+        for k in range(0, l+1):
+            # Calculation from the formula
+            point_ratio = k / n
+            area_one = x_values[l] * matrix_y[k]
+            area_two = x_values[l+1] * matrix_y[k+1]
+            discrepancy = max(point_ratio - area_one, area_two - point_ratio)
+            # If discrepancy is larger append it
+            if(discrepancy > max_discrepancy):
+                max_discrepancy = discrepancy
+                x_coordinate = x_values[l]
+                y_coordinate = matrix_y[k]
+    print(f"Star discrepancy is {round(max_discrepancy, 8)} and this was found at the point [{x_coordinate},{y_coordinate}]")
+
 if __name__ == "__main__":
-    # SUMMARY
-    # Times are virtually the same and these values depend quite significantly on what order the functions are run
-    # TP : Put the matrix calculation into the l for loop so theoretically it could be slightly better,
-    #      since its one for loop less and its no longer a 2D array
-    # TP2 : Instead of sorting the entire list at each index in the y matrix,
-    #       it inserts the next y value into to correct position inside of the array
-    # All of these return the same correct values
-    print(Bundschuh_Zhu_Algorithm_WH(create_test_case(3)))
-    print(Bundschuh_Zhu_Algorithm_TP(create_test_case(3)))
-    print(Bundschuh_Zhu_Algorithm_TP2(create_test_case(3)))
+    pointset = create_test_case(3, 8)
+    Bundschuh_Zhu_Algorithm_Display_Coordinate(pointset)
