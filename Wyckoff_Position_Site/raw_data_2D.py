@@ -59,7 +59,7 @@ def main(index, duration):
         
 if __name__ == "__main__":
     # Create a .txt file for the results
-    open('wyckoff_positions_2D.txt', 'w').close()
+    open('wyckoff_positions_2D_Letters.txt', 'w').close()
     # Determines how much the program is slowed
     duration = 1.5
     final_list = []
@@ -71,12 +71,12 @@ if __name__ == "__main__":
     for i in range(1, 18):
         final_list, multiplicity, coordinate_deviation, wyckoff_letters = main(i, duration)
         
-        with open("wyckoff_positions_2D.txt", "a") as file:
+        with open("wyckoff_positions_2D_Letters.txt", "a") as file:
             file.write(f"# {i} {coordinate_deviation}\n")
             for i in range(len(final_list)):
                 if(coordinate_deviation != ""):
-                    file.write(f"{multiplicity[i] * 2} : {wyckoff_letters[i]} : {final_list[i]} \n")
+                    file.write(f"{wyckoff_letters[i]} : {multiplicity[i] * 2} : {final_list[i]} \n")
                 else:
-                    file.write(f"{multiplicity[i]} : {wyckoff_letters[i]} : {final_list[i]} \n")
+                    file.write(f"{wyckoff_letters[i]} : {multiplicity[i]} : {final_list[i]} \n")
     
     driver.quit()
