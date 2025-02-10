@@ -1,27 +1,30 @@
-import itertools
 import bisect
-import numpy as np
 
-# SUMMARY
-# Times are virtually the same and these values depend quite significantly on what order the functions are run
-# TP : Put the matrix calculation into the l for loop so theoretically it could be slightly better,
-#      since its one for loop less and its no longer a 2D array
-# TP2 : Instead of sorting the entire list at each index in the y matrix,
-#       it inserts the next y value into to correct position inside of the array
 # Tovstik 1 & 2 : Neither work, don't understand what is meant by the n2(j) notation
 
-def create_test_case(format_value : int, decimal_places : int = 4):
+def create_test_case_paper(decimal_places : int = 4):
     points_x = [k/32 for k in range(0,32)]
     points_y = [round((7*k/32) % 1, decimal_places)  for k in range(0,32)]
-    # Point Shift
-    # Added options so the input could be altered
-    match(format_value):
-        # 1. Two seperate lists 
-        case 1: return points_x, points_y
-        # 2. One list with alternating values
-        case 2: return list(itertools.chain.from_iterable(zip(points_x,points_y)))
-        # 3. One list with coordinate style values (currently with lists) 
-        case 3: return [list(coordinate) for coordinate in zip(points_x, points_y)]
+    return [list(coordinate) for coordinate in zip(points_x, points_y)]
+
+def create_halton_sequence_points(n : int = 10):
+
+    def halton_sequence(b):
+        # Generator function for Halton sequence from wikipedia
+        n, d = 0, 1
+        while True:
+            x = d - n
+            if x == 1:
+                n = 1
+                d *= b
+            else:
+                y = d // b
+                while x <= y:
+                    y //= b
+                n = (b + 1) * y - x
+            yield n / d
+
+    return [[x, y] for _, x, y in zip(range(n), halton_sequence(2), halton_sequence(3))]
 
 def Bundschuh_Zhu_Algorithm_WH(pointset : list) -> float:
     n = len(pointset)
@@ -197,7 +200,8 @@ def Tovstik__2D_2(pointset):
     return d2
        
 if __name__ == "__main__":
-    pointset = create_test_case(3, 8)
-    #Bundschuh_Zhu_Algorithm_Display_Coordinate(pointset)
-    print(Tovstik__2D_1(pointset))
+    pointset = create_halton_sequence_points(n=1000)
+    print(Bundschuh_Zhu_Algorithm_TP2(pointset))
+    #print(Tovstik__2D_1(pointset))
+    
     
