@@ -1,6 +1,5 @@
 import bisect
-
-# Tovstik 1 & 2 : Neither work, don't understand what is meant by the n2(j) notation
+import timeit
 
 def create_test_case_paper(decimal_places : int = 4):
     points_x = [k/32 for k in range(0,32)]
@@ -26,7 +25,14 @@ def create_halton_sequence_points(n : int = 10):
 
     return [[x, y] for _, x, y in zip(range(n), halton_sequence(2), halton_sequence(3))]
 
-def Bundschuh_Zhu_Algorithm_WH(pointset : list) -> float:
+def time_functions(function_list : list[str], function_iterations : int = 100) -> None:
+    for i in range(len(function_list)):
+        current_function_time = timeit.timeit(stmt=function_list[i], 
+                                              number=function_iterations,
+                                              globals=globals())
+        print(f"{function_list[i].replace("(pointset)", "")} : {current_function_time}")
+
+def Bundschuh_Zhu_Algorithm_WH(pointset : list[list]) -> float:
     n = len(pointset)
     # Sorts pointset based on x values
     sorted_pointset = sorted(pointset, key=lambda coord : coord[0])
@@ -50,7 +56,7 @@ def Bundschuh_Zhu_Algorithm_WH(pointset : list) -> float:
     return round(max_discrepancy, 8)
 
 # My attempt at optimalizing this
-def Bundschuh_Zhu_Algorithm_TP(pointset : list) -> float:
+def Bundschuh_Zhu_Algorithm_TP(pointset : list[list]) -> float:
     n = len(pointset)
     # Still unsure how necessary this is 
     # Sorts pointset based on x values
@@ -73,7 +79,7 @@ def Bundschuh_Zhu_Algorithm_TP(pointset : list) -> float:
                 max_discrepancy = discrepancy
     return round(max_discrepancy, 8)
 
-def Bundschuh_Zhu_Algorithm_TP2(pointset : list) -> float:
+def Bundschuh_Zhu_Algorithm_TP2(pointset : list[list]) -> float:
     n = len(pointset)
     # Sorts pointset based on x values
     sorted_pointset = sorted(pointset, key=lambda coord : coord[0])
@@ -97,7 +103,7 @@ def Bundschuh_Zhu_Algorithm_TP2(pointset : list) -> float:
                 max_discrepancy = discrepancy
     return round(max_discrepancy, 8)
 
-def Bundschuh_Zhu_Algorithm_Display_Coordinate(pointset : list) -> None:
+def Bundschuh_Zhu_Algorithm_Display_Coordinate(pointset : list[list]) -> None:
     n = len(pointset)
     # Sorts pointset based on x values
     sorted_pointset = sorted(pointset, key=lambda coord : coord[0])
@@ -126,82 +132,80 @@ def Bundschuh_Zhu_Algorithm_Display_Coordinate(pointset : list) -> None:
                 y_coordinate = matrix_y[k]
     print(f"Star discrepancy is {round(max_discrepancy, 8)} and this was found at the point [{x_coordinate},{y_coordinate}]")
 
-def Tovstik__2D_1(pointset):
+# Works
+def Tovstik_Improvement(pointset : list[list]):
     N = len(pointset)
-    # Sorts pointset based on x values
-    sorted_pointset =  sorted(pointset, key=lambda coord : coord[0])
-    # Extracts x and y values
-    x_values = [0.0] + [entry[0] for entry in sorted_pointset] + [1.0]
-    # The * represents "sorted", I belive you need to add the two points either way
-    y_values_unsorted = [0.0] + [entry[1] for entry in sorted_pointset] + [1.0]
-    y_values_sorted = sorted(y_values_unsorted)
+    
+    sorted_pointset = sorted(pointset, key=lambda coord : coord[0])
+    # Only seems to work without [0.0] and [1.0]
+    x_values = [entry[0] for entry in sorted_pointset]
+    y_values = [entry[1] for entry in sorted_pointset]
+    
+    # Adding max here also returns the incorrect value somehow
+    d2 = 0
+    
+    for j in range(N):
+        mu = 0  
+        v = 0 
+        for i in range(N):
+            if y_values[i] <= y_values[j]:
+                v += 1
+                point_ratio = v / N
+                area = x_values[i] * y_values[j]
+                discrepancy_value = abs(point_ratio - area)
+                d2 = max(d2, discrepancy_value)
+                
+                if mu > 1:
+                    previous_point_ratio = (v - 1) / N
+                    previous_discrepancy_value = abs(previous_point_ratio - area)
+                    d2 = max(d2, previous_discrepancy_value)
+            else:
+                mu += 1  
+    
+    return round(d2, 8) 
 
-    d2 = max(x_values[0], y_values_unsorted[0])
+# Doesnt work
+def Tovstik_Improvement_2(pointset : list[list]):
+    N = len(pointset)
     
-    def s_function(i, j, v):
-        return max(v/N - x_values[i]*y_values_unsorted[j], x_values[i+1]*y_values_unsorted[i+1] - v/N)
+    sorted_pointset = sorted(pointset, key=lambda coord : coord[0])
+    # Only seems to work without [0.0] and [1.0]
+    x_values = [entry[0] for entry in sorted_pointset]
+    y_values = [entry[1] for entry in sorted_pointset]
     
-    for j in range(1, N+1):   
-        v = 0
-        mu = 0
-        for i in range(1, N+1):
-            # I believe there is a typo here
-            if(y_values_sorted[i] <= y_values_unsorted[j]):
+    def s_function(i : int, j : int, v : int):
+        return max(v/N - x_values[i]*y_values[j], x_values[i+1]*x_values[i+1] - v/N)
+    
+    # Adding max here also returns the incorrect value somehow
+    d2 = 0
+    
+    for j in range(N-1):
+        mu = 0  
+        v = 0 
+        for i in range(N-1):
+            if y_values[i] <= y_values[j]:
                 v += 1
                 s1 = s_function(i, j, v)
                 d2 = max(d2, s1)
                 
-                if(mu > 1):
-                    s2 = s_function(i-1, j, v-1)
+                if mu > 1:
+                    s2 = s_function(i, j, v-1)
                     d2 = max(d2, s2)
             else:
-                mu += 1
-            
-    return d2
+                mu += 1  
+    
+    return round(d2, 8) 
 
-def Tovstik__2D_2(pointset):
-    N = len(pointset)
-    # Sorts pointset based on x values
-    sorted_pointset =  sorted(pointset, key=lambda coord : coord[0])
-    # Extracts x and y values
-    x_values = [0.0] + [entry[0] for entry in sorted_pointset] + [1.0]
-    # The * represents "sorted", I belive you need to add the two points either way
-    y_values_unsorted = [0.0] + [entry[1] for entry in sorted_pointset] + [1.0]
-    y_values_sorted = sorted(y_values_unsorted)
-
-    d2 = max(x_values[0], y_values_unsorted[0])
-    
-    n2 = [0 for _ in range(N)]
-    for j in range(len(n2)):
-        counter = 0
-        for i in range(0, j):
-            if(y_values_sorted[j] <= y_values_unsorted[i]): counter += 1
-        n2[j] = counter
-    
-    def s_function(i, j, v):
-        return max(v/N - x_values[i]*y_values_unsorted[j], x_values[i+1]*y_values_unsorted[i+1] - v/N)
-    
-    for j in range(1, N):   
-        v = 0
-        mu = 0
-        for i in range(1, N):
-            # I believe there is a typo here
-            if(n2[i] <= j):
-                v += 1
-                s1 = s_function(i, j, v)
-                d2 = max(d2, s1)
-                
-                if(mu > 1):
-                    s2 = s_function(i-1, j, v-1)
-                    d2 = max(d2, s2)
-            else:
-                mu += 1
-            
-    return d2
-       
 if __name__ == "__main__":
-    pointset = create_halton_sequence_points(n=1000)
+    pointset = create_halton_sequence_points(500)
+    # Time all variations of algorithm
+    time_functions(["Tovstik_Improvement(pointset)",
+                    "Tovstik_Improvement_2(pointset)", 
+                    "Bundschuh_Zhu_Algorithm_TP(pointset)", 
+                    "Bundschuh_Zhu_Algorithm_TP2(pointset)", 
+                    "Bundschuh_Zhu_Algorithm_WH(pointset)"])
+    # Display results
+    print(Tovstik_Improvement_2(pointset))
+    print(Tovstik_Improvement(pointset))
     print(Bundschuh_Zhu_Algorithm_TP2(pointset))
-    #print(Tovstik__2D_1(pointset))
-    
-    
+   
