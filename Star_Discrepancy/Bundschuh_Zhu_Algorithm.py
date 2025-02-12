@@ -1,10 +1,27 @@
 import bisect
 import timeit
 
-def create_test_case_paper(decimal_places : int = 4):
+def create_test_case_paper(decimal_places : int = 7):
+    # Resulting D* should be 0.849609
     points_x = [k/32 for k in range(0,32)]
     points_y = [round((7*k/32) % 1, decimal_places)  for k in range(0,32)]
     return [list(coordinate) for coordinate in zip(points_x, points_y)]
+
+def create_Eric_Thiemard_points():
+    # Resulting D* should be 0.266667
+    pointset = [
+        [0,0],
+        [0.5,0.333333] ,
+        [0.25, 0.666667],
+        [0.75, 0.111111],
+        [0.125, 0.444444],
+        [0.625, 0.777778],
+        [0.375, 0.222222],
+        [0.875, 0.555556],
+        [0.0625, 0.888889],
+        [0.5625, 0.037037]
+    ]
+    return pointset
 
 def create_halton_sequence_points(n : int = 10):
 
@@ -32,6 +49,28 @@ def time_functions(function_list : list[str], function_iterations : int = 100) -
                                               globals=globals())
         print(f"{function_list[i].replace("(pointset)", "")} : {current_function_time}")
 
+def test_discrepancies(functions_to_test : list[str]):
+    # For now these will be default
+    test_pointsets = [create_test_case_paper(),
+                      create_Eric_Thiemard_points(), 
+                      create_halton_sequence_points(100), 
+                      create_halton_sequence_points(500), 
+                      create_halton_sequence_points(1000), 
+                      create_halton_sequence_points(2000)]
+    
+    pointset_names = ["Bundschuh Zhu paper (0.849609): ",
+                      "Eric Thiemard test case (0.266667): ", 
+                      "Halton sequence (N = 100) : ",
+                      "Halton sequence (N = 500) : ",
+                      "Halton sequence (N = 1000) : ",
+                      "Halton sequence (N = 2000) : ",]
+    
+    for i in range(len(functions_to_test)):
+        print(f"{functions_to_test[i]}")
+        for j in range(len(test_pointsets)):
+            print(f"{pointset_names[j]}{globals()[str(functions_to_test[i])](test_pointsets[j])}")
+        print()
+
 def Bundschuh_Zhu_Algorithm_WH(pointset : list[list]) -> float:
     n = len(pointset)
     # Sorts pointset based on x values
@@ -53,7 +92,7 @@ def Bundschuh_Zhu_Algorithm_WH(pointset : list[list]) -> float:
             # If discrepancy is larger append it
             if(discrepancy > max_discrepancy):
                 max_discrepancy = discrepancy
-    return round(max_discrepancy, 8)
+    return round(max_discrepancy, 7)
 
 # My attempt at optimalizing this
 def Bundschuh_Zhu_Algorithm_TP(pointset : list[list]) -> float:
@@ -77,7 +116,7 @@ def Bundschuh_Zhu_Algorithm_TP(pointset : list[list]) -> float:
             # If discrepancy is larger append it
             if(discrepancy > max_discrepancy):
                 max_discrepancy = discrepancy
-    return round(max_discrepancy, 8)
+    return round(max_discrepancy, 7)
 
 def Bundschuh_Zhu_Algorithm_TP2(pointset : list[list]) -> float:
     n = len(pointset)
@@ -101,7 +140,7 @@ def Bundschuh_Zhu_Algorithm_TP2(pointset : list[list]) -> float:
             # If discrepancy is larger append it
             if(discrepancy > max_discrepancy):
                 max_discrepancy = discrepancy
-    return round(max_discrepancy, 8)
+    return round(max_discrepancy, 7)
 
 def Bundschuh_Zhu_Algorithm_Display_Coordinate(pointset : list[list]) -> None:
     n = len(pointset)
@@ -162,7 +201,7 @@ def Tovstik_Improvement(pointset : list[list]):
             else:
                 mu += 1  
     
-    return round(d2, 8) 
+    return round(d2, 7) 
 
 # Doesnt work
 def Tovstik_Improvement_2(pointset : list[list]):
@@ -195,17 +234,22 @@ def Tovstik_Improvement_2(pointset : list[list]):
                 mu += 1  
     
     return round(d2, 8) 
-
+    
 if __name__ == "__main__":
-    pointset = create_halton_sequence_points(500)
+    # Integrate this into the time_functions
+    pointset = create_Eric_Thiemard_points()
+    
     # Time all variations of algorithm
+    
     time_functions(["Tovstik_Improvement(pointset)",
-                    "Tovstik_Improvement_2(pointset)", 
                     "Bundschuh_Zhu_Algorithm_TP(pointset)", 
                     "Bundschuh_Zhu_Algorithm_TP2(pointset)", 
                     "Bundschuh_Zhu_Algorithm_WH(pointset)"])
-    # Display results
-    print(Tovstik_Improvement_2(pointset))
-    print(Tovstik_Improvement(pointset))
-    print(Bundschuh_Zhu_Algorithm_TP2(pointset))
+    
+    # Tests different functions against each other
+    
+    test_discrepancies(["Tovstik_Improvement",
+                        "Bundschuh_Zhu_Algorithm_TP2"])
+    
+    
    
