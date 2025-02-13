@@ -8,7 +8,7 @@ import sys
 import os
 # Goes one directory down
 sys.path.append(os.path.join(os.path.dirname(__file__),'../'))
-import Star_Discrepancy.Bundschuh_Zhu_Algorithm as BDZ
+import Star_Discrepancy.QMC.Bundschuh_Zhu as BDZ
 
 # TODO:
 # Currently only works if there is an x and y

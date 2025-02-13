@@ -7,7 +7,7 @@ import sys
 import os
 # Goes one directory down
 sys.path.append(os.path.join(os.path.dirname(__file__),'../'))
-import Star_Discrepancy.Bundschuh_Zhu_Algorithm as BDZ
+import Star_Discrepancy.QMC.Bundschuh_Zhu as BDZ
 
 coordinates = ['x,y', '-y,x-y', '-x+y,-x', '-x,-y', 'y,-x+y', 'x-y,x', '-y,-x', '-x+y,y', 'x,x-y', 'y,x', 'x-y,-y', '-x,-x+y']
 
