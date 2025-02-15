@@ -23,7 +23,7 @@ def get_point_formulas(input_symmetry : str) -> list[str]:
         if(lines[i][0:4] == f"# {symmetry_info[0]}"):
             # Go until you find all letters
             for j in range(1, len(lines)-i):
-                if(len(lines) == 0):
+                if(len(letters) == 0):
                     break
                 if(lines[i+j][0] in letters):
                     axis_formulas.append(lines[i+j])
@@ -40,20 +40,22 @@ def generate_pointset(x_value : float, y_value : float, all_points : list[str]) 
     for i in range(len(all_points)):
         coordinates = all_points[i].split(',')
         coordinates[0] = round(eval(str(coordinates[0]).replace('x', str(x_value)).replace('y', str(y_value))) % 1, 1)
-        coordinates[1] = round(eval(str(coordinates[0]).replace('x', str(x_value)).replace('y', str(y_value))) % 1, 1)
+        coordinates[1] = round(eval(str(coordinates[1]).replace('x', str(x_value)).replace('y', str(y_value))) % 1, 1)
         pointset.append([coordinates[0], coordinates[1]])
 
     return pointset
 
-def remove_duplicates(pointset : list[list]) -> list[list]:
+def remove_duplicates(pointset : list[list[float]]) -> list[list]:
     seen = set()
     unique_points = []
+    
     for point in pointset:
         # Convert to tuple for hashability
         tuple_point = tuple(point)
         if tuple_point not in seen:
             seen.add(tuple_point)
             unique_points.append(point)
+    
     return unique_points
 
 def calculate_discrepancies(interpolations : int) -> list[float]:
@@ -77,23 +79,21 @@ def calculate_discrepancies(interpolations : int) -> list[float]:
 
             run_value += 1
             updt(interpolations**2, run_value)
+    
     print("D* calculation finished; Creating heatmap ...")
     return discrepancies
 
-def plot_heatmap(interpolations : int = 100) -> None:
+def plot_heatmap(symmetry_name : str, interpolations : int = 100) -> None:
     discrepancies = calculate_discrepancies(interpolations)
-    num_rows = len(discrepancies) // interpolations  # Determine the number of rows
-    x_vals = np.linspace(0, 1, interpolations + 1)  # Define bin edges for x
-    y_vals = np.linspace(0, 1, num_rows + 1)  # Define bin edges for y
     
-    # Reshape without transposing
-    heatmap_data = np.array(discrepancies).reshape(num_rows, interpolations) 
+    heatmap_data = np.array(discrepancies).reshape(interpolations, interpolations) 
+
     # "hot" also works 
-    plt.imshow(heatmap_data, cmap='seismic', aspect='auto', extent=[0, 1, 0, 1], origin='lower', interpolation='bilinear')
-    plt.colorbar(label='Value')
+    plt.imshow(heatmap_data, cmap='seismic', aspect='auto', extent=[0, 1, 0, 1], origin='lower', interpolation='gaussian')
+    plt.colorbar(label=f'D* (Max : {max(discrepancies)})')
     plt.xlabel('X')
     plt.ylabel('Y')
-    plt.title('Heatmap')
+    plt.title(symmetry_name)
     plt.show()
 
 def updt(total, progress) -> None:
@@ -109,6 +109,6 @@ def updt(total, progress) -> None:
     sys.stdout.flush()
 
 if __name__ == "__main__":    
-    input_symmetry = "17f"
+    input_symmetry = "17fedcba"
     
-    plot_heatmap(100)
+    plot_heatmap(input_symmetry)

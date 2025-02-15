@@ -1,6 +1,6 @@
 import bisect
 
-def Bundschuh_Zhu_Algorithm(pointset : list[list]) -> float:
+def Bundschuh_Zhu_Algorithm(pointset : list[list[float]]) -> float:
     n = len(pointset)
     # Sorts pointset based on x values
     sorted_pointset = sorted(pointset, key=lambda coord : coord[0])
@@ -22,9 +22,43 @@ def Bundschuh_Zhu_Algorithm(pointset : list[list]) -> float:
             # If discrepancy is larger append it
             if(discrepancy > max_discrepancy):
                 max_discrepancy = discrepancy
+    
     return round(max_discrepancy, 7)
 
-def Tovstik_Improvement(pointset : list[list]):
+def Bundschuh_Zhu_Algorithm_3D(pointset : list[list[float]]) -> float:
+    n = len(pointset)
+    # Sorts pointset based on x values
+    sorted_pointset = sorted(pointset, key=lambda coord : coord[0])
+    
+    # Extracts x and y values
+    x_values = [0.0] + [entry[0] for entry in sorted_pointset] + [1.0]
+    y_values = [entry[1] for entry in sorted_pointset]
+    z_values = [entry[2] for entry in sorted_pointset]
+
+    y_matrix_values = []
+    z_matrix_values = []
+    max_discrepancy = 0
+
+    for l in range(0, n+1):
+        # Using a if statement and doing it by inserting a value is still faster than re-sorting
+        if l > 0: bisect.insort(y_matrix_values, y_values[l-1])
+        matrix_y = [0.0] + y_matrix_values + [1.0]
+        for t in range(0, l+1):
+            if t > 0: bisect.insort(z_matrix_values, z_values[t-1])
+            matrix_z = [0.0] + z_matrix_values + [1.0]
+            for k in range(t+1):
+                # Calculation from the formula
+                point_ratio = k / n
+                area_one = x_values[l] * matrix_y[t] * matrix_z[k]
+                area_two = x_values[l+1] * matrix_y[k+1] * matrix_z[k+1]
+                discrepancy = max(point_ratio - area_one, area_two - point_ratio)
+                # If discrepancy is larger append it
+                if(discrepancy > max_discrepancy):
+                    max_discrepancy = discrepancy
+    
+    return round(max_discrepancy, 7)
+
+def Tovstik_Improvement(pointset : list[list[float]]) -> float:
     N = len(pointset)
     
     sorted_pointset = sorted(pointset, key=lambda coord : coord[0])
