@@ -75,7 +75,7 @@ if __name__ == "__main__":
     # Wait time
     duration = 1.5
     # Might be temporary (clears .txt file)
-    open('wyckoff_positions_3D.txt', 'w').close()
+    open('wyckoff_positions_3D_Letters.txt', 'w').close()
     
     driver = webdriver.Edge()
     driver.get("https://www.cryst.ehu.es/cgi-bin/cryst/programs/nph-wp-list")
@@ -84,12 +84,12 @@ if __name__ == "__main__":
     for i in range(1,231):
         final_list, table_multiplicities, coordinate_deviation, divider, wyckoff_letters = main(i, duration)
 
-        with open("wyckoff_positions_3D.txt", "a") as file:
+        with open("wyckoff_positions_3D_Letters.txt", "a") as file:
             file.write(f"# {i} {coordinate_deviation}\n")
             for i in range(len(final_list)):
                     if(coordinate_deviation != ""):
-                        file.write(f"{table_multiplicities[i] * divider} : {wyckoff_letters[i]} : {final_list[i]} \n")
+                        file.write(f"{wyckoff_letters[i]} : {table_multiplicities[i] * divider} : {final_list[i]} \n")
                     else:
-                        file.write(f"{table_multiplicities[i]} : {wyckoff_letters[i]} : {final_list[i]} \n")
+                        file.write(f"{wyckoff_letters[i]} : {table_multiplicities[i]} : {final_list[i]} \n")
     
     driver.quit()
