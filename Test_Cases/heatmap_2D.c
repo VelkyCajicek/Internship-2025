@@ -4,14 +4,22 @@
 #include <string.h>
 
 typedef struct Point{
-    float x,y;
+    float x, y;
 } Point;
 
-int compare (const void * a, const void * b)
-{
-    float fa = *(const float*) a;
-    float fb = *(const float*) b;
+int compare (const void * a, const void * b) {
+    float fa = ((Point*)a)->x;
+    float fb = ((Point*)b)->x;
     return (fa > fb) - (fa < fb);
+}
+
+Point *test_pointset(){
+    Point *pointset = (Point*)malloc(32*sizeof(Point));
+    for(int k = 0; k < 33; k++){
+        pointset[k].x = k / 32.0;
+        pointset[k].y = fmod(7.0 * k / 32.0, 1);
+    }
+    return pointset;
 }
 
 float Bundschuh_Zhu_Algorithm(Point *pointset, int n) {
@@ -70,50 +78,99 @@ float Bundschuh_Zhu_Algorithm(Point *pointset, int n) {
     return round(max_discrepancy * 1e7) / 1e7;
 }
 
-Point *generate_pointset(float x_value, float y_value, char** all_points){
-    // 8 is temporary in the line below
-    Point *pointset = (float*)malloc(8 * sizeof(float));
+float evaluate_expression(const char *expr, float x, float y) {
+    char buffer[20];
+    snprintf(buffer, sizeof(buffer), expr, x, y);
+    return fmod(atof(buffer), 1.0);
 }
 
-int remove_duplicates(Point* pointset, int n){
-    if (n == 0) return 0;
-  
+Point *generate_pointset(float x_value, float y_value, char all_points[][20], int n) {
+    Point *pointset = (Point *)malloc(n * sizeof(Point));
+
+    for (int i = 0; i < n; i++) {
+        char *copy = strdup(all_points[i]);
+        char *token = strtok(copy, ",");
+        
+        float coordinate_x = evaluate_expression(token, x_value, y_value);
+        token = strtok(NULL, ",");
+        float coordinate_y = evaluate_expression(token, x_value, y_value);
+
+        pointset[i].x = round(coordinate_x * 10) / 10.0;
+        pointset[i].y = round(coordinate_y * 10) / 10.0;
+
+        free(copy);
+    }
+
+    return pointset;
+}
+
+int point_compare(const void *a, const void *b) {
+    Point *p1 = (Point *)a;
+    Point *p2 = (Point *)b;
+    if (p1->x != p2->x) return (p1->x > p2->x) - (p1->x < p2->x);
+    return (p1->y > p2->y) - (p1->y < p2->y);
+}
+
+Point* remove_duplicates(Point* pointset, int n, int *unique_n){
+    if (n == 0) return NULL;
     int j = 0;
-    for (int i = 1; i < n - 1; i++) {
-        // If a unique element is found, place it at arr[j + 1]
-        if (pointset[i].x != pointset[j].x && pointset[i].y != pointset[i].y){
+
+    for (int i = 1; i < n; i++) {
+        if (pointset[i].x != pointset[j].x || pointset[i].y != pointset[j].y){
             pointset[++j] = pointset[i];
         }
-    }  
-      // Return the new ending of array that only contains unique elements
-    return j + 1;
+    }
+
+    *unique_n = j + 1;  // Store unique count
+
+    Point *set_pointset = (Point*)malloc((*unique_n) * sizeof(Point));
+    memcpy(set_pointset, pointset, (*unique_n) * sizeof(Point));
+    return set_pointset;
 }
 
 float *calculate_discrepancies(int num_points){
-    float *discrepancies = (float*)malloc(num_points * num_points * sizeof(float));
+    float *discrepancies = (float*)calloc(num_points * num_points, sizeof(float));
 
-    char all_points[100][20] = {
+    char all_points[12][20] = {
         "x,y", "-y,x-y", "-x+y,-x", "-x,-y", "y,-x+y", "x-y,x", 
         "-y,-x", "-x+y,y", "x,x-y", "y,x", "x-y,-y", "-x,-x+y"
     };
+    
+    int n = sizeof(all_points) / sizeof(all_points[0]);
 
-    int all_points_length = sizeof(all_points) / sizeof(all_points[0]);
-
-    for(int x = 0; x < num_points + 1; x++){
-        for(int y = 0; y < num_points + 1; y++){
-            Point* pointset = (Point*)malloc(all_points_length * sizeof(Point));
-            pointset = generate_pointset(x, y, all_points);
-            // pointset remove duplicates
-            int n = sizeof(pointset) / sizeof(pointset[0]);
-            discrepancies[x*num_points + y] = Bundschuh_Zhu_Algorithm(pointset, n);
+    for(int x = 0; x < num_points; x++){
+        for(int y = 0; y < num_points; y++){
+            float x_value = (float)x / num_points;
+            float y_value = (float)y / num_points;
+            
+            Point* pointset = generate_pointset(x_value, y_value, all_points, n);
+            if (pointset == NULL) continue;
+            
+            int unique_n;
+            Point* unique_pointset = remove_duplicates(pointset, n, &unique_n);
+            
+            discrepancies[x * num_points + y] = Bundschuh_Zhu_Algorithm(unique_pointset, unique_n);
+            
+            free(pointset);
+            free(unique_pointset);
         }
     }
+    return discrepancies;
 }
 
+void display_array(float *arr, int size) {
+    for(int i = 0; i < size; i++) {
+        printf("%f ", arr[i]);
+    }
+    printf("\n");
+}
 
-int main(){
-    char input_symmetry[] = "17f";
-    char path[] = "../data/wyckoff_positions_2D_Letters.txt";
+int main() {
+    int interpolations = 5;
 
+    float *discrepancies = calculate_discrepancies(interpolations);
+    display_array(discrepancies, interpolations * interpolations);
+    free(discrepancies);
+    
     return 0;
 }
