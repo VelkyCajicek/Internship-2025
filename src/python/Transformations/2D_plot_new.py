@@ -4,14 +4,14 @@ import re
 import numpy as np
 import matplotlib.pyplot as plt
 
-sys.path.append(os.path.join(os.path.dirname(__file__),'../'))
+sys.path.append(os.path.join(os.path.dirname(__file__),'../../'))
 
 from Star_Discrepancy.QMC.Bundschuh_Zhu import Bundschuh_Zhu_Algorithm
 
 def get_point_formulas(input_symmetry : str) -> list[str]:
     lines = []
     
-    with open("Data/wyckoff_positions_2D_Letters.txt") as data:
+    with open("data/wyckoff_positions_2D_Letters.txt") as data:
         lines = [line.strip() for line in data]
     
     # Formatting input data
@@ -85,7 +85,7 @@ def calculate_discrepancies(interpolations : int) -> list[float]:
 
 def plot_heatmap(symmetry_name : str, interpolations : int = 100) -> None:
     discrepancies = calculate_discrepancies(interpolations)
-    
+
     heatmap_data = np.array(discrepancies).reshape(interpolations, interpolations) 
 
     # "hot" also works 
@@ -109,6 +109,6 @@ def updt(total, progress) -> None:
     sys.stdout.flush()
 
 if __name__ == "__main__":    
-    input_symmetry = "17fedcba"
+    input_symmetry = "17f"
     
     plot_heatmap(input_symmetry)
