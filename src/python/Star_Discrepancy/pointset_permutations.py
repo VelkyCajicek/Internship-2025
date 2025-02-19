@@ -1,7 +1,7 @@
 import random
 import copy
 from collections import Counter
-from python.Transformations.Bundschuh_Zhu import Bundschuh_Zhu_Algorithm_TP2
+from python.Star_Discrepancy.QMC.Bundschuh_Zhu import Bundschuh_Zhu_Algorithm_TP2
 
 def show_pointset(pointset : list) -> None:
     for i in range(len(pointset)):

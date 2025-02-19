@@ -4,12 +4,15 @@ import re
 import numpy as np
 import matplotlib.pyplot as plt
 
-#sys.path.append(os.path.join(os.path.dirname(__file__),'../'))
+sys.path.append(os.path.join(os.path.dirname(__file__),'../'))
+from Star_Discrepancy.QMC.Bundschuh_Zhu import Bundschuh_Zhu_Algorithm
+sys.path.append(os.path.join(os.path.dirname(__file__),'../../../'))
 
-from Bundschuh_Zhu import Bundschuh_Zhu_Algorithm
-
-def get_point_formulas(input_symmetry : str, lines : list[str]) -> list[str]:
+def get_point_formulas(input_symmetry : str) -> list[str]:
     lines = []
+    
+    with open("Data/wyckoff_positions_2D_Letters.txt") as data:
+        lines = [line.strip() for line in data]
     
     # Formatting input data
     symmetry_info = list(filter(None, re.split(r'(\d+)', input_symmetry)))
@@ -55,13 +58,13 @@ def remove_duplicates(pointset : list[list[float]]) -> list[list]:
     
     return unique_points
 
-def calculate_discrepancies(interpolations : int) -> list[float]:
+def calculate_discrepancies(interpolations : int, symmetry_name : str) -> list[float]:
     discrepancies = []
     run_value = 0
     
     # Most of the remaining functions which are run
     
-    point_formulas = get_point_formulas(input_symmetry)
+    point_formulas = get_point_formulas(symmetry_name)
     individual_formulas = [extract_parentheses(point_formulas[i]) for i in range(len(point_formulas))]
     all_points = []
     [all_points.extend(element) for element in individual_formulas]
@@ -81,7 +84,7 @@ def calculate_discrepancies(interpolations : int) -> list[float]:
     return discrepancies
 
 def plot_heatmap(symmetry_name : str, interpolations : int = 100) -> None:
-    discrepancies = calculate_discrepancies(interpolations)
+    discrepancies = calculate_discrepancies(interpolations, symmetry_name)
 
     heatmap_data = np.array(discrepancies).reshape(interpolations, interpolations) 
 
@@ -105,24 +108,32 @@ def updt(total, progress) -> None:
     sys.stdout.write(text)
     sys.stdout.flush()
 
-def generate_examples() -> list[str]:
+def generate_examples():
     true_2_degrees_of_freedom = []
-    pattern = re.compile(r":\s[0-9]+\s:")
+    lines = []
+    
+    with open("Data/wyckoff_positions_2D_Letters.txt") as data:
+        lines = [line.strip() for line in data]
+    
     for i in range(len(lines)):
         if(lines[i][0]) == "#":
-            result = pattern.search(lines[i+1])
-            temp = lines[i].strip().replace("#", "")
-            true_2_degrees_of_freedom.append(f"{temp}{result.group(0)}")
+            multiplicity = lines[i].replace("#", "").replace(" ", "")
+            letter = lines[i+1][0:lines[i+1].index(":")].replace(" ", "")
+            true_2_degrees_of_freedom.append(f"{multiplicity}{letter}")
+    
     return true_2_degrees_of_freedom
 
 if __name__ == "__main__":    
-    input_symmetry = "12d"
+    input_symmetry = ["17f"]
 
-    with open("wyckoff_positions_2D_Letters.txt") as data:
-        lines = [line.strip() for line in data]
+    # Function that gets all the first multiplicities
+    input_symmetry_list = generate_examples()
 
-    true_2_degrees_of_freedom = generate_examples()
-
-    print(true_2_degrees_of_freedom)
-
-    #plot_heatmap(input_symmetry, lines)
+    for i in range(len(input_symmetry_list)):
+        try:
+            plot_heatmap(str(input_symmetry_list[i]))
+        # ZeroDivisionError occurs in Bundschuh Zhu
+        except(ZeroDivisionError):
+            # Doesn't yet work
+            fixed_input_symmetry_list = str(input_symmetry_list[i]).replace("(0,0)+(1/2, 1/2)", "")
+            #plot_heatmap(fixed_input_symmetry_list)

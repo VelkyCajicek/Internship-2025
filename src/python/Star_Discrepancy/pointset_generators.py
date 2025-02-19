@@ -32,7 +32,8 @@ def generate_halton_sequence_points(n : int = 10, dimensions : int = 2):
     match(dimensions):
         case 2: return [[x, y] for _, x, y in zip(range(n), halton_sequence(2), halton_sequence(3))]
         case 3: return [[x, y, z] for _, x, y, z in zip(range(n), halton_sequence(2), halton_sequence(3), halton_sequence(5))]
-        case 4: return [[x, y, z, a] for _, x, y, z, a in zip(range(n), halton_sequence(2), halton_sequence(3), halton_sequence(4), halton_sequence(5))]
+        case 4: return [[x, y, z, a] for _, x, y, z, a in zip(range(n), halton_sequence(2), halton_sequence(3), halton_sequence(5), halton_sequence(7))]
+        case _: return [[x, y] for _, x, y in zip(range(n), halton_sequence(2), halton_sequence(3))]
         
 def generate_sobol_sequence_points(n : int = 10, dimensions : int = 2):
     # Sobol sequence imported from scipy

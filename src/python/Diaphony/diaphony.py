@@ -41,9 +41,5 @@ def Zinterhof_Diaphony(pointset : list[list[float]], lower_bound : int = -10, up
 
 if __name__ == "__main__":
     pointset = generate_halton_sequence_points(10, 3)
-    #pointset.insert(0, [0,0,0])
-    for point in pointset:
-        print(point)
-
     diaphony_value = Zinterhof_Diaphony(pointset)
     print(diaphony_value)

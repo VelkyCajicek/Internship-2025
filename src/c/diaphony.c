@@ -3,6 +3,7 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <complex.h>
+#include <string.h>
 
 // For 3D cases
 // Complex numbers won't be confirmed by interpreter
@@ -27,7 +28,7 @@ Point* halton_sequence_pointset(int n){
     for(int i = 0; i < n; i++){
         pointset[i].x = halton_sequence(i, 2);
         pointset[i].y = halton_sequence(i, 3);
-        pointset[i].z = halton_sequence(i, 4);
+        pointset[i].z = halton_sequence(i, 5);
     }
     return pointset;
 }
@@ -67,12 +68,12 @@ double  r(int *h_vector, int dimension){
 double Diaphony_Function(Point* pointset, int upper_boundary, int lower_boundary, int dimension, int n){
     double diaphony_value = 0.0;
     int iterations = upper_boundary + abs(lower_boundary) + 1;
-    
+
     for(int h = lower_boundary; h <= upper_boundary; h++){
         for(int k = lower_boundary; k <= upper_boundary; k++){
             for(int l = lower_boundary; l <= upper_boundary; l++){
                 int h_vector[3] = {h, k, l};
-                if(h_vector != {0.0,0.0,0.0}){
+                if(h != 0 && k != 0 && l != 0){
                     diaphony_value += pow(r(h_vector, dimension), -2.0) * pow(cabs(Sn_function(pointset, h_vector, dimension, n)), 2.0);
                 }
             }

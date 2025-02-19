@@ -1,5 +1,5 @@
 import timeit
-from python.Transformations.Bundschuh_Zhu import Bundschuh_Zhu_Algorithm, Tovstik_Improvement
+from Star_Discrepancy.QMC.Bundschuh_Zhu import Bundschuh_Zhu_Algorithm, Tovstik_Improvement
 from QMC.Doerr_Gnewuch import Gwenuch_Doerr_Algorithm
 from Simple_Algorithm import Simple_D_star
 from pointset_generators import generate_Bundschuh_Zhu_article_points, generate_Eric_Thiemard_article_points, generate_halton_sequence_points, generate_sobol_sequence_points
@@ -33,3 +33,4 @@ def test_discrepancies(functions_to_test : list[str]):
             pointset_names[j] = pointset_names[j].replace("(pointset)", "")
             print(f"{pointset_names[j]}{globals()[str(functions_to_test[i])](test_pointsets[j])}")
         print()
+        
