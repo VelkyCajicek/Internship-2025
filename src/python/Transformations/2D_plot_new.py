@@ -4,15 +4,12 @@ import re
 import numpy as np
 import matplotlib.pyplot as plt
 
-sys.path.append(os.path.join(os.path.dirname(__file__),'../../'))
+#sys.path.append(os.path.join(os.path.dirname(__file__),'../'))
 
-from Star_Discrepancy.QMC.Bundschuh_Zhu import Bundschuh_Zhu_Algorithm
+from Bundschuh_Zhu import Bundschuh_Zhu_Algorithm
 
-def get_point_formulas(input_symmetry : str) -> list[str]:
+def get_point_formulas(input_symmetry : str, lines : list[str]) -> list[str]:
     lines = []
-    
-    with open("data/wyckoff_positions_2D_Letters.txt") as data:
-        lines = [line.strip() for line in data]
     
     # Formatting input data
     symmetry_info = list(filter(None, re.split(r'(\d+)', input_symmetry)))
@@ -108,7 +105,24 @@ def updt(total, progress) -> None:
     sys.stdout.write(text)
     sys.stdout.flush()
 
+def generate_examples() -> list[str]:
+    true_2_degrees_of_freedom = []
+    pattern = re.compile(r":\s[0-9]+\s:")
+    for i in range(len(lines)):
+        if(lines[i][0]) == "#":
+            result = pattern.search(lines[i+1])
+            temp = lines[i].strip().replace("#", "")
+            true_2_degrees_of_freedom.append(f"{temp}{result.group(0)}")
+    return true_2_degrees_of_freedom
+
 if __name__ == "__main__":    
-    input_symmetry = "17f"
-    
-    plot_heatmap(input_symmetry)
+    input_symmetry = "12d"
+
+    with open("wyckoff_positions_2D_Letters.txt") as data:
+        lines = [line.strip() for line in data]
+
+    true_2_degrees_of_freedom = generate_examples()
+
+    print(true_2_degrees_of_freedom)
+
+    #plot_heatmap(input_symmetry, lines)

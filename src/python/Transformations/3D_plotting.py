@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 sys.path.append(os.path.join(os.path.dirname(__file__),'../'))
 
-from Star_Discrepancy.QMC.Bundschuh_Zhu import Bundschuh_Zhu_Algorithm
+from python.Transformations.Bundschuh_Zhu import Bundschuh_Zhu_Algorithm
 
 def get_point_formulas(input_symmetry : str) -> list[str]:
     lines = []

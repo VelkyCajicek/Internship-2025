@@ -72,12 +72,14 @@ double Diaphony_Function(Point* pointset, int upper_boundary, int lower_boundary
         for(int k = lower_boundary; k <= upper_boundary; k++){
             for(int l = lower_boundary; l <= upper_boundary; l++){
                 int h_vector[3] = {h, k, l};
-                diaphony_value += pow(r(h_vector, dimension), -2.0) * pow(cabs(Sn_function(pointset, h_vector, dimension, n)), 2.0);
+                if(h_vector != {0.0,0.0,0.0}){
+                    diaphony_value += pow(r(h_vector, dimension), -2.0) * pow(cabs(Sn_function(pointset, h_vector, dimension, n)), 2.0);
+                }
             }
         } 
     }
-
-    return sqrt(diaphony_value);
+    double C_s = 1 / (pow((1 + pow(M_PI, 2) / 3), dimension) - 1);
+    return sqrt(C_s * diaphony_value);
 }
 
 void display_pointset(Point *pointset, int n){
