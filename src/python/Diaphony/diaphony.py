@@ -3,29 +3,26 @@ import os
 import math
 import numpy as np
 
-sys.path.append(os.path.join(os.path.dirname(__file__),'../'))
-
-from Star_Discrepancy.pointset_generators import generate_halton_sequence_points
-
-def e_h(x_vector : list, h_vector : list):
-    return np.exp(complex(0,2*math.pi * sum(i*j for (i, j) in zip(x_vector, h_vector))))
-    
-def S_N(pointset, h_vector):
-    n = len(pointset)
-    value = 0
-    for j in range(n):
-        value += e_h(pointset[j], h_vector)
-    
-    return 1/n * value
-
-def r(h_vector : list[int]) -> float:
-    d = len(h_vector)
-    value = 1
-    for j in range(d):
-        value *= max(1, abs(h_vector[j]))
-    return value
 
 def Zinterhof_Diaphony(pointset : list[list[float]], lower_bound : int = -10, upper_bound : int = 10) -> float:
+    def e_h(x_vector : list, h_vector : list):
+        return np.exp(complex(0,2*math.pi * sum(i*j for (i, j) in zip(x_vector, h_vector))))
+    
+    def S_N(pointset, h_vector):
+        n = len(pointset)
+        value = 0
+        for j in range(n):
+            value += e_h(pointset[j], h_vector)
+
+        return 1/n * value
+
+    def r(h_vector : list[int]) -> float:
+        d = len(h_vector)
+        value = 1
+        for j in range(d):
+            value *= max(1, abs(h_vector[j]))
+        return value
+    
     value = 0
 
     for h in range(lower_bound, upper_bound + 1):
@@ -40,6 +37,9 @@ def Zinterhof_Diaphony(pointset : list[list[float]], lower_bound : int = -10, up
     return math.sqrt(temp*value)
 
 if __name__ == "__main__":
+    sys.path.append(os.path.join(os.path.dirname(__file__),'../'))
+    from Star_Discrepancy.pointset_generators import generate_halton_sequence_points
+
     pointset = generate_halton_sequence_points(10, 3)
     diaphony_value = Zinterhof_Diaphony(pointset)
     print(diaphony_value)

@@ -6,7 +6,11 @@ import matplotlib.pyplot as plt
 
 sys.path.append(os.path.join(os.path.dirname(__file__),'../'))
 from Star_Discrepancy.QMC.Bundschuh_Zhu import Bundschuh_Zhu_Algorithm
+from Diaphony.diaphony import Zinterhof_Diaphony
 sys.path.append(os.path.join(os.path.dirname(__file__),'../../../'))
+
+# Will have to move eventually
+diaphony : bool = True
 
 def get_point_formulas(input_symmetry : str) -> list[str]:
     lines = []
@@ -65,13 +69,7 @@ def calculate_discrepancies(interpolations : int, symmetry_name : str) -> list[f
     # Most of the remaining functions which are run
     
     point_formulas = get_point_formulas(symmetry_name)
-    
-    # May be temporary code
-    try:
-        if(("y" not in point_formulas[0] and "y" not in point_formulas[1]) or ("x" not in point_formulas[0] and "x" not in point_formulas[1])):
-            point_formulas[1] = point_formulas[1].replace("x", "y")
-    except(IndexError):
-        pass
+    point_formulas = add_degree_of_freedom(point_formulas)
     
     individual_formulas = [extract_parentheses(point_formulas[i]) for i in range(len(point_formulas))]
     all_points = []
@@ -83,7 +81,10 @@ def calculate_discrepancies(interpolations : int, symmetry_name : str) -> list[f
         for y in range(0, interpolations):
             poinset = generate_pointset(round(x / interpolations, 1), round(y / interpolations, 1), all_points)
             poinset = remove_duplicates(poinset)
-            discrepancies.append(Bundschuh_Zhu_Algorithm(poinset))
+            if(diaphony):
+                discrepancies.append(Zinterhof_Diaphony(poinset))
+            else:
+                discrepancies.append(Bundschuh_Zhu_Algorithm(poinset))
 
             run_value += 1
             updt(interpolations**2, run_value)
@@ -91,7 +92,21 @@ def calculate_discrepancies(interpolations : int, symmetry_name : str) -> list[f
     print("D* calculation finished; Creating heatmap ...")
     return discrepancies
 
-def plot_heatmap(symmetry_name : str, interpolations : int = 100) -> None:
+def add_degree_of_freedom(point_list : list[str]) -> list[str]:
+    if(len(point_list) == 1):
+        return point_list
+    
+    if("x" in point_list[0] and "y" not in point_list[1]):
+        point_list[1] = point_list[1].replace("x", "y")
+        return point_list
+    
+    if("y" in point_list[0] and "x" not in point_list[1]):
+        point_list[1] = point_list[1].replace("x", "y")
+        return point_list
+    
+    return point_list
+
+def plot_heatmap(symmetry_name : str, interpolations : int = 100, create_pdf_files : bool = False) -> None:
     plt.clf()
     
     discrepancies = calculate_discrepancies(interpolations, symmetry_name)
@@ -105,8 +120,10 @@ def plot_heatmap(symmetry_name : str, interpolations : int = 100) -> None:
     plt.ylabel('Y')
     plt.title(symmetry_name)
     
-    plt.savefig(f'{symmetry_name}.pdf')
-    # plt.show()
+    if(create_pdf_files):
+        plt.savefig(f'{symmetry_name}.pdf')
+    else:
+        plt.show()
     
     plt.close()
     
@@ -145,13 +162,13 @@ def generate_heatmaps(input_symmetry_list : list[str]) -> None:
         try:
             plot_heatmap(str(input_symmetry_list[i]))
         # ZeroDivisionError occurs in Bundschuh Zhu
-        except(ZeroDivisionError):
-            # Doesn't yet work
-            fixed_input_symmetry_list = str(input_symmetry_list[i]).replace("(0,0)+(1/2, 1/2)", "")
-            #plot_heatmap(fixed_input_symmetry_list)
+        except(Exception):
+            pass
 
 if __name__ == "__main__":    
     input_symmetry = ["1a", "2e", "3c", "3ba", "4a", "5b", "6i", "6hg", "6he", "6hf", "6gf", "6ge", "6fe", "7d", "7cb", "8c", "9f", "9ed", "10d",
                       "11g", "11fe", "11fd", "11ed", "12d", "12cb", "13d", "14e", "14dc", "15d", "15cb", "16d", "17f", "17ed"]
     
+    # 7cb, 12cb, 14dc, 15dc
+
     generate_heatmaps(input_symmetry)

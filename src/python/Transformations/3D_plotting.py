@@ -6,12 +6,12 @@ import matplotlib.pyplot as plt
 
 sys.path.append(os.path.join(os.path.dirname(__file__),'../'))
 
-from python.Star_Discrepancy.QMC.Bundschuh_Zhu import Bundschuh_Zhu_Algorithm
+from Star_Discrepancy.QMC.Bundschuh_Zhu import Bundschuh_Zhu_Algorithm_3D
 
 def get_point_formulas(input_symmetry : str) -> list[str]:
     lines = []
     
-    with open("Data/wyckoff_positions_2D_Letters.txt") as data:
+    with open("Data/wyckoff_positions_3D_Letters.txt") as data:
         lines = [line.strip() for line in data]
     
     # Formatting input data
@@ -20,7 +20,7 @@ def get_point_formulas(input_symmetry : str) -> list[str]:
     axis_formulas = []
 
     for i in range(len(lines)):
-        if(lines[i][0:4] == f"# {symmetry_info[0]}"):
+        if(lines[i][0:5] == f"# {symmetry_info[0]}"):
             # Go until you find all letters
             for j in range(1, len(lines)-i):
                 if(len(letters) == 0):
@@ -64,6 +64,9 @@ def calculate_discrepancies(interpolations : int) -> list[float]:
     # Most of the remaining functions which are run
     
     point_formulas = get_point_formulas(input_symmetry)
+
+    print(point_formulas)
+
     individual_formulas = [extract_parentheses(point_formulas[i]) for i in range(len(point_formulas))]
     all_points = []
     [all_points.extend(element) for element in individual_formulas]
@@ -75,7 +78,7 @@ def calculate_discrepancies(interpolations : int) -> list[float]:
             for z in range(0, interpolations):
                 poinset = generate_pointset(round(x / interpolations, 1), round(y / interpolations, 1), round(z / interpolations), all_points)
                 poinset = remove_duplicates(poinset)
-                discrepancies.append(Bundschuh_Zhu_Algorithm(poinset))
+                discrepancies.append(Bundschuh_Zhu_Algorithm_3D(poinset))
 
                 run_value += 1
                 updt(interpolations**3, run_value)
@@ -109,6 +112,6 @@ def updt(total, progress) -> None:
     sys.stdout.flush()
 
 if __name__ == "__main__":    
-    input_symmetry = "17fedcba"
+    input_symmetry = "175k"
     
     plot_heatmap(input_symmetry)
