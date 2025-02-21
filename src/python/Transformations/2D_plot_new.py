@@ -65,6 +65,14 @@ def calculate_discrepancies(interpolations : int, symmetry_name : str) -> list[f
     # Most of the remaining functions which are run
     
     point_formulas = get_point_formulas(symmetry_name)
+    
+    # May be temporary code
+    try:
+        if(("y" not in point_formulas[0] and "y" not in point_formulas[1]) or ("x" not in point_formulas[0] and "x" not in point_formulas[1])):
+            point_formulas[1] = point_formulas[1].replace("x", "y")
+    except(IndexError):
+        pass
+    
     individual_formulas = [extract_parentheses(point_formulas[i]) for i in range(len(point_formulas))]
     all_points = []
     [all_points.extend(element) for element in individual_formulas]
@@ -84,6 +92,8 @@ def calculate_discrepancies(interpolations : int, symmetry_name : str) -> list[f
     return discrepancies
 
 def plot_heatmap(symmetry_name : str, interpolations : int = 100) -> None:
+    plt.clf()
+    
     discrepancies = calculate_discrepancies(interpolations, symmetry_name)
 
     heatmap_data = np.array(discrepancies).reshape(interpolations, interpolations) 
@@ -94,8 +104,12 @@ def plot_heatmap(symmetry_name : str, interpolations : int = 100) -> None:
     plt.xlabel('X')
     plt.ylabel('Y')
     plt.title(symmetry_name)
-    plt.show()
-
+    
+    plt.savefig(f'{symmetry_name}.pdf')
+    # plt.show()
+    
+    plt.close()
+    
 def updt(total, progress) -> None:
     barLength, status = 20, ""
     progress = float(progress) / float(total)
@@ -123,12 +137,10 @@ def generate_examples():
     
     return true_2_degrees_of_freedom
 
-if __name__ == "__main__":    
-    input_symmetry = ["17f"]
-
+def generate_heatmaps(input_symmetry_list : list[str]) -> None:
     # Function that gets all the first multiplicities
-    input_symmetry_list = generate_examples()
-
+    #input_symmetry_list = generate_examples()
+    
     for i in range(len(input_symmetry_list)):
         try:
             plot_heatmap(str(input_symmetry_list[i]))
@@ -137,3 +149,9 @@ if __name__ == "__main__":
             # Doesn't yet work
             fixed_input_symmetry_list = str(input_symmetry_list[i]).replace("(0,0)+(1/2, 1/2)", "")
             #plot_heatmap(fixed_input_symmetry_list)
+
+if __name__ == "__main__":    
+    input_symmetry = ["1a", "2e", "3c", "3ba", "4a", "5b", "6i", "6hg", "6he", "6hf", "6gf", "6ge", "6fe", "7d", "7cb", "8c", "9f", "9ed", "10d",
+                      "11g", "11fe", "11fd", "11ed", "12d", "12cb", "13d", "14e", "14dc", "15d", "15cb", "16d", "17f", "17ed"]
+    
+    generate_heatmaps(input_symmetry)
