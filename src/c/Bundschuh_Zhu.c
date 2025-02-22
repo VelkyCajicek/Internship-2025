@@ -1,3 +1,7 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+
 typedef struct Point{
     float x, y;
 } Point;
@@ -72,3 +76,10 @@ float Bundschuh_Zhu_Algorithm(Point *pointset, int n) {
 
     return round(max_discrepancy * 1e7) / 1e7;
 }
+
+//int main(){
+//    Point* pointset = test_pointset();
+//    printf("%f", Bundschuh_Zhu_Algorithm(pointset, 32));
+//
+//    return 0;
+//}

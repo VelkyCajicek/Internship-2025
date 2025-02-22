@@ -47,22 +47,45 @@ char *str_replace(char *orig, char *rep, char *with) {
     return result;
 }
 
-int evaluate_expression(char *string) {
-    int result = 0;
-    int current_number = 0;
-    int sign = 1; // 1 for +, -1 for -
-    
+#include <ctype.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+float evaluate_expression(const char *string) {
+    float result = 0.0, current_number = 0.0;
+    char operator = '+'; // Default operator
+    int decimal_place = 0;
+
     while (*string) {
         if (isdigit(*string)) {
-            current_number = current_number * 10 + (*string - '0');
-        } else if (*string == '+' || *string == '-') {
-            result += sign * current_number;
+            if (decimal_place) {
+                current_number += (*string - '0') / (10.0 * decimal_place);
+                decimal_place *= 10;
+            } else {
+                current_number = current_number * 10 + (*string - '0');
+            }
+        } else if (*string == '.') {
+            decimal_place = 1; // Start tracking decimal places
+        } else if (*string == '+' || *string == '-' || *string == '*' || *string == '/') {
+            // Compute previous value before updating operator
+            if (operator == '+') result += current_number;
+            else if (operator == '-') result -= current_number;
+            else if (operator == '*') result *= current_number;
+            else if (operator == '/') result /= current_number;
+
             current_number = 0;
-            sign = (*string == '+') ? 1 : -1;
+            decimal_place = 0;
+            operator = *string;
         }
         string++;
     }
-    
-    result += sign * current_number; // Add the last number
+
+    // Final computation
+    if (operator == '+') result += current_number;
+    else if (operator == '-') result -= current_number;
+    else if (operator == '*') result *= current_number;
+    else if (operator == '/') result /= current_number;
+
     return result;
 }
+

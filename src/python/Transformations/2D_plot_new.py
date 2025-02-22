@@ -4,13 +4,15 @@ import re
 import numpy as np
 import matplotlib.pyplot as plt
 
+import ctypes
+
 sys.path.append(os.path.join(os.path.dirname(__file__),'../'))
 from Star_Discrepancy.QMC.Bundschuh_Zhu import Bundschuh_Zhu_Algorithm
 from Diaphony.diaphony import Zinterhof_Diaphony
 sys.path.append(os.path.join(os.path.dirname(__file__),'../../../'))
 
 # Will have to move eventually
-diaphony : bool = True
+diaphony : bool = False
 
 def get_point_formulas(input_symmetry : str) -> list[str]:
     lines = []
@@ -111,6 +113,8 @@ def plot_heatmap(symmetry_name : str, interpolations : int = 100, create_pdf_fil
     
     discrepancies = calculate_discrepancies(interpolations, symmetry_name)
 
+    print(discrepancies)
+    
     heatmap_data = np.array(discrepancies).reshape(interpolations, interpolations) 
 
     # "hot" also works 
@@ -170,5 +174,6 @@ if __name__ == "__main__":
                       "11g", "11fe", "11fd", "11ed", "12d", "12cb", "13d", "14e", "14dc", "15d", "15cb", "16d", "17f", "17ed"]
     
     # 7cb, 12cb, 14dc, 15dc
+    input_symmetry = ["17f"]
 
     generate_heatmaps(input_symmetry)

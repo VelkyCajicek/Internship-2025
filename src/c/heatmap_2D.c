@@ -13,8 +13,10 @@ Point *generate_pointset(float x_value, float y_value, char all_points[][20], in
 
     char x_str[20], y_str[20];
     // Convert float to string
-    sprintf(x_str, "%.2f", fmod(x_value, 1)); 
-    sprintf(y_str, "%.2f", fmod(y_value, 1));
+    sprintf(x_str, "%.1f", fmod(x_value, 1));
+    sprintf(y_str, "%.1f", fmod(y_value, 1));
+    
+    
 
     for (int i = 0; i < n; i++) {
         char *copy = strdup(all_points[i]);
@@ -25,7 +27,7 @@ Point *generate_pointset(float x_value, float y_value, char all_points[][20], in
 
         char *replaced_x = str_replace(token, "x", x_str);
         char *replaced_y = str_replace(replaced_x, "y", y_str);
-        float coordinate_x = evaluate_expression(replaced_y);
+        float coordinate_x = fmod(evaluate_expression(replaced_x), 1.0);
 
         free(replaced_x);
         free(replaced_y);
@@ -36,10 +38,12 @@ Point *generate_pointset(float x_value, float y_value, char all_points[][20], in
 
         replaced_x = str_replace(token, "x", x_str);
         replaced_y = str_replace(replaced_x, "y", y_str);
-        float coordinate_y = evaluate_expression(replaced_y);
+        float coordinate_y = fmod(evaluate_expression(replaced_y), 1.0);
 
-        pointset[i].x = round(coordinate_x * 10) / 10.0;
-        pointset[i].y = round(coordinate_y * 10) / 10.0;
+        //printf("X: %f, Y: %f -> (%f, %f)\n", x_value, y_value, coordinate_x, coordinate_y);
+
+        pointset[i].x = round(coordinate_x * 10.0) / 10.0;
+        pointset[i].y = round(coordinate_y * 10.0) / 10.0;
 
         free(replaced_x);
         free(replaced_y);
@@ -77,26 +81,28 @@ Point* remove_duplicates(Point* pointset, int n, int *unique_n){
 
 float *calculate_discrepancies(int num_points){
     float *discrepancies = (float*)calloc(num_points * num_points, sizeof(float));
-
+    // 17f
     char all_points[12][20] = {
         "x,y", "-y,x-y", "-x+y,-x", "-x,-y", "y,-x+y", "x-y,x", 
         "-y,-x", "-x+y,y", "x,x-y", "y,x", "x-y,-y", "-x,-x+y"
     };
     
     int n = sizeof(all_points) / sizeof(all_points[0]);
+    int counter = 0;
 
     for(int x = 0; x < num_points; x++){
         for(int y = 0; y < num_points; y++){
-            float x_value = (float)x / num_points;
-            float y_value = (float)y / num_points;
+            float x_value = x / (float)num_points;
+            float y_value = y / (float)num_points;
             
             Point* pointset = generate_pointset(x_value, y_value, all_points, n);
             
             int unique_n;
             Point* unique_pointset = remove_duplicates(pointset, n, &unique_n);
             
-            discrepancies[x * num_points + y] = Bundschuh_Zhu_Algorithm(unique_pointset, unique_n);
-            
+            discrepancies[counter] = Bundschuh_Zhu_Algorithm(unique_pointset, unique_n);
+            counter++;
+
             free(pointset);
             free(unique_pointset);
         }

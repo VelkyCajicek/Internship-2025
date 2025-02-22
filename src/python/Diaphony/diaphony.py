@@ -3,7 +3,6 @@ import os
 import math
 import numpy as np
 
-
 def Zinterhof_Diaphony(pointset : list[list[float]], lower_bound : int = -10, upper_bound : int = 10) -> float:
     def e_h(x_vector : list, h_vector : list):
         return np.exp(complex(0,2*math.pi * sum(i*j for (i, j) in zip(x_vector, h_vector))))
@@ -33,8 +32,9 @@ def Zinterhof_Diaphony(pointset : list[list[float]], lower_bound : int = -10, up
                     pass
                 else:
                     value += (abs(S_N(pointset, h_vector)))**2 * (r(h_vector))**-2
+    
     temp = 1 / ((1 + np.pi**2 / 3)**3 - 1)
-    return math.sqrt(temp*value)
+    return round(math.sqrt(temp*value), 6)
 
 if __name__ == "__main__":
     sys.path.append(os.path.join(os.path.dirname(__file__),'../'))

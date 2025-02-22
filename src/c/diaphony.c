@@ -57,29 +57,29 @@ double _Complex Sn_function(Point* pointset, int *h_vector, int dimension, int n
     return (1.0 / n) * sigma;
 }
 
-double  r(int *h_vector, int dimension){
+double r(int *h_vector, int dimension){
     double return_value = 1.0;
     for(int j = 0; j < dimension; j++){
-        return_value *= fmax(1, abs(h_vector[j]));
+        return_value *= fmax(1.0, fabs((double)h_vector[j]));
     }
     return return_value;
 }
 
 double Diaphony_Function(Point* pointset, int upper_boundary, int lower_boundary, int dimension, int n){
     double diaphony_value = 0.0;
-    int iterations = upper_boundary + abs(lower_boundary) + 1;
 
     for(int h = lower_boundary; h <= upper_boundary; h++){
         for(int k = lower_boundary; k <= upper_boundary; k++){
             for(int l = lower_boundary; l <= upper_boundary; l++){
                 int h_vector[3] = {h, k, l};
-                if(h != 0 && k != 0 && l != 0){
-                    diaphony_value += pow(r(h_vector, dimension), -2.0) * pow(cabs(Sn_function(pointset, h_vector, dimension, n)), 2.0);
+                if(!(h == 0 && k == 0 && l == 0)) 
+                {
+                    diaphony_value += (pow(r(h_vector, dimension), -2.0) * pow(cabs(Sn_function(pointset, h_vector, dimension, n)), 2.0));
                 }
             }
         } 
     }
-    double C_s = 1 / (pow((1 + pow(M_PI, 2) / 3), dimension) - 1);
+    double C_s = 1.0 / (pow((1.0 + (M_PI * M_PI / 3.0)), dimension) - 1.0);
     return sqrt(C_s * diaphony_value);
 }
 
