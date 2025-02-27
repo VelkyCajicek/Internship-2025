@@ -72,7 +72,7 @@ def calculate_discrepancies(symmetry_name : str, resolution : int):
 
     # Temporary solution to memory leaks
     for i in range(0, resolution**2):
-        if(discrepancies[i] >= 0):
+        if(discrepancies[i] >= 0 and discrepancies[i] <= 1):
             discrepancies_list.append(discrepancies[i])
         else:
             discrepancies_list.append(discrepancies[i-1])
@@ -101,4 +101,4 @@ def plot_heatmap(symmetry_name : str, resolution : int = 100, create_pdf_files :
     plt.close()
 
 if(__name__ == "__main__"):
-    print(plot_heatmap("17f"))
+    print(plot_heatmap("17ed"))

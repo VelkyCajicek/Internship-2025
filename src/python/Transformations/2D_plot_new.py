@@ -45,8 +45,8 @@ def generate_pointset(x_value : float, y_value : float, all_points : list[str]) 
 
     for i in range(len(all_points)):
         coordinates = all_points[i].split(',')
-        coordinates[0] = round(eval(str(coordinates[0]).replace('x', str(x_value)).replace('y', str(y_value))) % 1, 1)
-        coordinates[1] = round(eval(str(coordinates[1]).replace('x', str(x_value)).replace('y', str(y_value))) % 1, 1)
+        coordinates[0] = round(eval(str(coordinates[0]).replace('x', str(x_value)).replace('y', str(y_value))) % 1, 7)
+        coordinates[1] = round(eval(str(coordinates[1]).replace('x', str(x_value)).replace('y', str(y_value))) % 1, 7)
         pointset.append([coordinates[0], coordinates[1]])
 
     return pointset
@@ -112,8 +112,6 @@ def plot_heatmap(symmetry_name : str, interpolations : int = 100, create_pdf_fil
     plt.clf()
     
     discrepancies = calculate_discrepancies(interpolations, symmetry_name)
-
-    print(discrepancies)
     
     heatmap_data = np.array(discrepancies).reshape(interpolations, interpolations) 
 
@@ -174,6 +172,8 @@ if __name__ == "__main__":
                       "11g", "11fe", "11fd", "11ed", "12d", "12cb", "13d", "14e", "14dc", "15d", "15cb", "16d", "17f", "17ed"]
     
     # 7cb, 12cb, 14dc, 15dc
-    input_symmetry = ["17f"]
+    input_symmetry = ["8c"]
 
     generate_heatmaps(input_symmetry)
+
+    #print(len(input_symmetry))
