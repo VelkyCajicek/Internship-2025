@@ -59,7 +59,7 @@ def remove_duplicates(pointset : list[list[float]]) -> list[list]:
     
     return unique_points
 
-def calculate_discrepancies(symmetry_name : str, interpolations : int, diaphony : bool, hexagonal_test : bool) -> list[float]:
+def calculate_discrepancies(all_points : list, symmetry_name : str, interpolations : int, diaphony : bool, hexagonal_test : bool) -> list[float]:
     discrepancies = []
     run_value = 0
     center_value = 0
@@ -72,7 +72,7 @@ def calculate_discrepancies(symmetry_name : str, interpolations : int, diaphony 
     point_formulas = add_degree_of_freedom(point_formulas)
     
     individual_formulas = [extract_parentheses(point_formulas[i]) for i in range(len(point_formulas))]
-    all_points = []
+    
     [all_points.extend(element) for element in individual_formulas]
     
     # Calculates the D*
@@ -118,13 +118,16 @@ def plot_heatmaps(symmetry_names : list[str], resolution : int = 100, diaphony :
     if(create_pdf_files):
         with PdfPages(pdf_file_name) as pdf:
             for symmetry_name in symmetry_names:
+                # Moved here to count multiplicity
+                all_points = []
+                
                 fig, ax = plt.subplots(figsize=(6, 6))  # Square figure to maintain aspect ratio
-                discrepancies = calculate_discrepancies(symmetry_name, resolution, diaphony, hexagonal_test)
+                discrepancies = calculate_discrepancies(all_points, symmetry_name, resolution, diaphony, hexagonal_test)
                 heatmap_data = np.array(discrepancies).reshape(resolution, resolution)
 
                 im = ax.imshow(heatmap_data, cmap='seismic', extent=[0, 1, 0, 1], origin='lower', interpolation='gaussian') # interpolation='gaussian' ensures smooth edges
                 
-                ax.set_title(symmetry_name)
+                ax.set_title(f"{symmetry_name}, N = {len(all_points)}")
                 ax.set_xlabel('X')
                 ax.set_ylabel('Y')
                 ax.set_aspect('equal')  # Ensures heatmap remains a square
@@ -139,9 +142,10 @@ def plot_heatmaps(symmetry_names : list[str], resolution : int = 100, diaphony :
     else:
         # If not saving to PDF, display plots individually
         for symmetry_name in symmetry_names:
+            all_points = []
+            
             fig, ax = plt.subplots(figsize=(6, 6))
-
-            discrepancies = calculate_discrepancies(symmetry_name, resolution, diaphony, hexagonal_test)
+            discrepancies = calculate_discrepancies(all_points, symmetry_name, resolution, diaphony, hexagonal_test)
             print("D* calculation finished; Creating heatmap ...")
             
             heatmap_data = np.array(discrepancies).reshape(resolution, resolution)
@@ -164,8 +168,7 @@ def updt(total, progress) -> None:
         progress, status = 1, "\r\n"
     block = int(round(barLength * progress))
     text = "\r[{}] {:.0f}% {}".format(
-        "#" * block + "-" * (barLength - block), round(progress * 100, 0),
-        status)
+        "#" * block + "-" * (barLength - block), round(progress * 100, 0), status)
     sys.stdout.write(text)
     sys.stdout.flush()
 
@@ -174,4 +177,4 @@ if __name__ == "__main__":
     input_symmetry = ["1a", "2e", "3c", "4a", "5b", "6i", "6he", "6hf", "6gf", "6ge", "6fe", "7d", "8c", "9f", "9ed", "10d",
                       "11g", "11fe", "11fd", "11ed", "12d", "13d", "14e", "15d", "16d", "17f", "17ed"]
     # 3ba
-    plot_heatmaps(input_symmetry, create_pdf_files=True, hexagonal_test=False)
+    plot_heatmaps(["1a"], create_pdf_files=False, hexagonal_test=False)
