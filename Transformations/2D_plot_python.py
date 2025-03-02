@@ -3,13 +3,12 @@ import os
 import re
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
 
 sys.path.append(os.path.join(os.path.dirname(__file__),'../'))
 from Star_Discrepancy.QMC.Bundschuh_Zhu import Bundschuh_Zhu_Algorithm
 from Diaphony.diaphony import Zinterhof_Diaphony
-
-# Will have to move eventually
-diaphony : bool = False
+from Rhombus_Unit_Cell.shift_coordinates import hexagonal_transformation
 
 def get_point_formulas(input_symmetry : str) -> list[str]:
     lines = []
@@ -31,7 +30,6 @@ def get_point_formulas(input_symmetry : str) -> list[str]:
                 if(lines[i+j][0] in letters):
                     axis_formulas.append(lines[i+j])
                     letters.remove(lines[i+j][0])
-
     return axis_formulas
 
 def extract_parentheses(axis_formulas : str) -> str:
@@ -61,11 +59,14 @@ def remove_duplicates(pointset : list[list[float]]) -> list[list]:
     
     return unique_points
 
-def calculate_discrepancies(interpolations : int, symmetry_name : str) -> list[float]:
+def calculate_discrepancies(symmetry_name : str, interpolations : int, diaphony : bool, hexagonal_test : bool) -> list[float]:
     discrepancies = []
     run_value = 0
+    center_value = 0
     
-    # Most of the remaining functions which are run
+    # For symmetries 5 and 9
+    if(symmetry_name[0] == "5" or symmetry_name[0] == "9"):
+        center_value = 0.5
     
     point_formulas = get_point_formulas(symmetry_name)
     point_formulas = add_degree_of_freedom(point_formulas)
@@ -78,8 +79,12 @@ def calculate_discrepancies(interpolations : int, symmetry_name : str) -> list[f
     
     for x in range(0, interpolations):
         for y in range(0, interpolations):
-            poinset = generate_pointset(round(x / interpolations, 1), round(y / interpolations, 1), all_points)
+            poinset = generate_pointset(round((x + center_value) / interpolations, 7), round((y + center_value) / interpolations, 7), all_points)
             poinset = remove_duplicates(poinset)
+            
+            if(hexagonal_test):
+                poinset = hexagonal_transformation(poinset)
+                
             if(diaphony):
                 discrepancies.append(Zinterhof_Diaphony(poinset))
             else:
@@ -88,7 +93,6 @@ def calculate_discrepancies(interpolations : int, symmetry_name : str) -> list[f
             run_value += 1
             updt(interpolations**2, run_value)
     
-    print("D* calculation finished; Creating heatmap ...")
     return discrepancies
 
 def add_degree_of_freedom(point_list : list[str]) -> list[str]:
@@ -105,27 +109,54 @@ def add_degree_of_freedom(point_list : list[str]) -> list[str]:
     
     return point_list
 
-def plot_heatmap(symmetry_name : str, interpolations : int = 100, create_pdf_files : bool = False) -> None:
-    plt.clf()
-    
-    discrepancies = calculate_discrepancies(interpolations, symmetry_name)
-    
-    heatmap_data = np.array(discrepancies).reshape(interpolations, interpolations) 
-
-    # "hot" also works 
-    plt.imshow(heatmap_data, cmap='seismic', aspect='auto', extent=[0, 1, 0, 1], origin='lower', interpolation='gaussian')
-    plt.colorbar(label=f'D* (Max : {max(discrepancies)})')
-    plt.xlabel('X')
-    plt.ylabel('Y')
-    plt.title(symmetry_name)
-    
+def plot_heatmaps(symmetry_names : list[str], resolution : int = 100, diaphony : bool = False, create_pdf_files : bool = False, hexagonal_test : bool = False):
+    pdf_file_name = "heatmaps.pdf"
+    if(hexagonal_test):
+        pdf_file_name = "heatmaps_hex.pdf"
+        # 13 - 17 for hexagonal test
+        symmetry_names = ["13d", "14e", "15d", "16d", "17f", "17ed"]
     if(create_pdf_files):
-        plt.savefig(f'{symmetry_name}.pdf')
+        with PdfPages(pdf_file_name) as pdf:
+            for symmetry_name in symmetry_names:
+                fig, ax = plt.subplots(figsize=(6, 6))  # Square figure to maintain aspect ratio
+                discrepancies = calculate_discrepancies(symmetry_name, resolution, diaphony, hexagonal_test)
+                heatmap_data = np.array(discrepancies).reshape(resolution, resolution)
+
+                im = ax.imshow(heatmap_data, cmap='seismic', extent=[0, 1, 0, 1], origin='lower', interpolation='gaussian') # interpolation='gaussian' ensures smooth edges
+                
+                ax.set_title(symmetry_name)
+                ax.set_xlabel('X')
+                ax.set_ylabel('Y')
+                ax.set_aspect('equal')  # Ensures heatmap remains a square
+                
+                fig.colorbar(im, ax=ax, label=f'D* (Max: {max(discrepancies)})')
+                
+                pdf.savefig(fig)
+                plt.close(fig)
+                
+        print(f"Saved all heatmaps to PDF")
+    
     else:
-        plt.show()
-    
-    plt.close()
-    
+        # If not saving to PDF, display plots individually
+        for symmetry_name in symmetry_names:
+            fig, ax = plt.subplots(figsize=(6, 6))
+
+            discrepancies = calculate_discrepancies(symmetry_name, resolution, diaphony, hexagonal_test)
+            print("D* calculation finished; Creating heatmap ...")
+            
+            heatmap_data = np.array(discrepancies).reshape(resolution, resolution)
+
+            im = ax.imshow(heatmap_data, cmap='seismic', extent=[0, 1, 0, 1], origin='lower', interpolation='gaussian') 
+
+            ax.set_title(symmetry_name)
+            ax.set_xlabel('X')
+            ax.set_ylabel('Y')
+            ax.set_aspect('equal')
+            fig.colorbar(im, ax=ax, label=f"D* (Max: {max(discrepancies)})")
+
+            plt.show()
+            plt.close(fig)
+
 def updt(total, progress) -> None:
     barLength, status = 20, ""
     progress = float(progress) / float(total)
@@ -138,39 +169,9 @@ def updt(total, progress) -> None:
     sys.stdout.write(text)
     sys.stdout.flush()
 
-def generate_examples():
-    true_2_degrees_of_freedom = []
-    lines = []
-    
-    with open("Data/wyckoff_positions_2D_Letters.txt") as data:
-        lines = [line.strip() for line in data]
-    
-    for i in range(len(lines)):
-        if(lines[i][0]) == "#":
-            multiplicity = lines[i].replace("#", "").replace(" ", "")
-            letter = lines[i+1][0:lines[i+1].index(":")].replace(" ", "")
-            true_2_degrees_of_freedom.append(f"{multiplicity}{letter}")
-    
-    return true_2_degrees_of_freedom
-
-def generate_heatmaps(input_symmetry_list : list[str]) -> None:
-    # Function that gets all the first multiplicities
-    #input_symmetry_list = generate_examples()
-    
-    for i in range(len(input_symmetry_list)):
-        try:
-            plot_heatmap(str(input_symmetry_list[i]))
-        # ZeroDivisionError occurs in Bundschuh Zhu
-        except(Exception):
-            pass
-
-if __name__ == "__main__":    
-    input_symmetry = ["1a", "2e", "3c", "3ba", "4a", "5b", "6i", "6hg", "6he", "6hf", "6gf", "6ge", "6fe", "7d", "7cb", "8c", "9f", "9ed", "10d",
-                      "11g", "11fe", "11fd", "11ed", "12d", "12cb", "13d", "14e", "14dc", "15d", "15cb", "16d", "17f", "17ed"]
-    
-    # 7cb, 12cb, 14dc, 15dc
-    input_symmetry = ["8c"]
-
-    generate_heatmaps(input_symmetry)
-
-    #print(len(input_symmetry))
+if __name__ == "__main__":
+    # All with 2 degrees of freedom  
+    input_symmetry = ["1a", "2e", "3c", "4a", "5b", "6i", "6he", "6hf", "6gf", "6ge", "6fe", "7d", "8c", "9f", "9ed", "10d",
+                      "11g", "11fe", "11fd", "11ed", "12d", "13d", "14e", "15d", "16d", "17f", "17ed"]
+    # 3ba
+    plot_heatmaps(input_symmetry, create_pdf_files=True, hexagonal_test=False)

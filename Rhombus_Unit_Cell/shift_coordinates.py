@@ -1,9 +1,11 @@
 import math
 
-def hexagonal_transformation(pointset : list[list[float]]):
+def hexagonal_transformation(pointset : list[list[float]]) -> list[list[float]]:
     # x_cartesian = x_hexagonal
     # -1/2x_cartesian + sqrt(3)/2*y_cartesian = y_hexagonal
-    pass
+    for i in range(len(pointset)):
+        pointset[i][1] = (-0.5 * pointset[i][0] + math.sqrt(3)/2 * pointset[i][1]) % 1
+    return pointset
 
 def universal_transformation(pointset : list[list[float]], phi : float, a : float = 1) -> list[list[float]]:
     # u = y
