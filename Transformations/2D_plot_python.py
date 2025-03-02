@@ -4,12 +4,9 @@ import re
 import numpy as np
 import matplotlib.pyplot as plt
 
-import ctypes
-
 sys.path.append(os.path.join(os.path.dirname(__file__),'../'))
 from Star_Discrepancy.QMC.Bundschuh_Zhu import Bundschuh_Zhu_Algorithm
 from Diaphony.diaphony import Zinterhof_Diaphony
-sys.path.append(os.path.join(os.path.dirname(__file__),'../../../'))
 
 # Will have to move eventually
 diaphony : bool = False
@@ -112,8 +109,6 @@ def plot_heatmap(symmetry_name : str, interpolations : int = 100, create_pdf_fil
     plt.clf()
     
     discrepancies = calculate_discrepancies(interpolations, symmetry_name)
-
-    print(discrepancies)
     
     heatmap_data = np.array(discrepancies).reshape(interpolations, interpolations) 
 
