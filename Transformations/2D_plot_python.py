@@ -132,7 +132,7 @@ def plot_heatmaps(symmetry_names : list[str], resolution : int = 100, diaphony :
                 ax.set_ylabel('Y')
                 ax.set_aspect('equal')  # Ensures heatmap remains a square
                 
-                fig.colorbar(im, ax=ax, label=f'D* (Max: {max(discrepancies)})')
+                fig.colorbar(im, ax=ax, label=f"D* (Min: {min(discrepancies)}, Max: {max(discrepancies)})")
                 
                 pdf.savefig(fig)
                 plt.close(fig)
@@ -156,7 +156,7 @@ def plot_heatmaps(symmetry_names : list[str], resolution : int = 100, diaphony :
             ax.set_xlabel('X')
             ax.set_ylabel('Y')
             ax.set_aspect('equal')
-            fig.colorbar(im, ax=ax, label=f"D* (Max: {max(discrepancies)})")
+            fig.colorbar(im, ax=ax, label=f"D* (Min: {min(discrepancies)}, Max: {max(discrepancies)})")
 
             plt.show()
             plt.close(fig)
@@ -176,5 +176,5 @@ if __name__ == "__main__":
     # All with 2 degrees of freedom  
     input_symmetry = ["1a", "2e", "3c", "4a", "5b", "6i", "6he", "6hf", "6gf", "6ge", "6fe", "7d", "8c", "9f", "9ed", "10d",
                       "11g", "11fe", "11fd", "11ed", "12d", "13d", "14e", "15d", "16d", "17f", "17ed"]
-    # 3ba
-    plot_heatmaps(["1a"], create_pdf_files=False, hexagonal_test=False)
+    
+    plot_heatmaps(input_symmetry, create_pdf_files=False, hexagonal_test=False)
