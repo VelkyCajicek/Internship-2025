@@ -57,7 +57,7 @@ def remove_duplicates(pointset : list[list[float]]) -> list[list]:
     
     return unique_points
 
-def get_specific_pointset(symmetry_name : str, x : float, y : float, decimal_points : int = 2):
+def get_specific_pointset(symmetry_name : str, remove_duplicates_var : bool, x : float = 0, y : float = 0, decimal_points : int = 7):
     center_value = 0
     
     # For symmetries 5 and 9
@@ -71,12 +71,18 @@ def get_specific_pointset(symmetry_name : str, x : float, y : float, decimal_poi
     all_points = []
     [all_points.extend(element) for element in individual_formulas]
 
-    return generate_pointset(round((x + center_value), decimal_points), round((y + center_value), decimal_points), all_points)
+    pointset = generate_pointset(round((x + center_value), decimal_points), round((y + center_value), decimal_points), all_points)
+    
+    if(remove_duplicates_var):
+        pointset = remove_duplicates(pointset)
+    
+    return pointset
 
 def get_specific_discrepancy(pointset):
     return Bundschuh_Zhu_Algorithm(pointset)
 
-def calculate_discrepancies(all_points : list, symmetry_name : str, resolution : int, remove_duplicates_var : bool, decimal_places : int) -> list[float]:
+def calculate_discrepancies(symmetry_name : str, resolution : int, remove_duplicates_var : bool, decimal_places : int) -> list[float]:
+    all_points = []
     discrepancies = []
     run_value = 0
     center_value = 0
@@ -122,52 +128,23 @@ def add_degree_of_freedom(point_list : list[str]) -> list[str]:
     
     return point_list
 
-def plot_heatmaps(symmetry_names : list[str], selected_interpolation : str, selected_cmap : str, resolution : int, create_pdf_files : bool, remove_duplicates : bool, decimal_places : int):
-    pdf_file_name = "heatmaps_duplicates.pdf"
-    if(create_pdf_files):
-        with PdfPages(pdf_file_name) as pdf:
-            for symmetry_name in symmetry_names:
-                # Moved here to count multiplicity
-                all_points = []
-                
-                fig, ax = plt.subplots(figsize=(6, 6))  # Square figure to maintain aspect ratio
-                discrepancies = calculate_discrepancies(all_points, symmetry_name, resolution, remove_duplicates, decimal_places)
-                heatmap_data = np.array(discrepancies).reshape(resolution, resolution)
-
-                im = ax.imshow(heatmap_data, cmap=selected_cmap, extent=[0, 1, 0, 1], origin='lower', interpolation=selected_interpolation) # interpolation='gaussian' ensures smooth edges
-                
-                ax.set_title(f"{symmetry_name}, N = {len(all_points)}")
-                ax.set_xlabel('X')
-                ax.set_ylabel('Y')
-                ax.set_aspect('equal')  # Ensures heatmap remains a square
-                
-                fig.colorbar(im, ax=ax, label=f"D* (Min: {min(discrepancies)}, Max: {max(discrepancies)})")
-                
-                pdf.savefig(fig)
-                plt.close(fig)
-                
-        print(f"Saved all heatmaps to PDF")
-    
-    else:
-        # If not saving to PDF, display plots individually
-        for symmetry_name in symmetry_names:
-            all_points = []
+def plot_heatmaps(symmetry_name : str, selected_interpolation : str, selected_cmap : str, resolution : int, remove_duplicates : bool, decimal_places : int):
+    fig, ax = plt.subplots(figsize=(6, 6))
+    discrepancies = calculate_discrepancies(symmetry_name, resolution, remove_duplicates, decimal_places)
+    print("D* calculation finished; Creating heatmap ...")
             
-            fig, ax = plt.subplots(figsize=(6, 6))
-            discrepancies = calculate_discrepancies(all_points, symmetry_name, resolution, remove_duplicates, decimal_places)
-            print("D* calculation finished; Creating heatmap ...")
-            
-            heatmap_data = np.array(discrepancies).reshape(resolution, resolution)
+    heatmap_data = np.array(discrepancies).reshape(resolution, resolution)
 
-            im = ax.imshow(heatmap_data, cmap=selected_cmap, extent=[0, 1, 0, 1], origin='lower', interpolation=selected_interpolation) 
+    im = ax.imshow(heatmap_data, cmap=selected_cmap, extent=[0, 1, 0, 1], origin='lower', interpolation=selected_interpolation) 
 
-            ax.set_title(f"{symmetry_name}, N = {len(all_points)}")
-            ax.set_xlabel('X')
-            ax.set_ylabel('Y')
-            ax.set_aspect('equal')
-            fig.colorbar(im, ax=ax, label=f"D* (Min: {min(discrepancies)}, Max: {max(discrepancies)})")
+    # May be ineffective, but removes the need for all points to be imported and causing a mess
+    ax.set_title(f"{symmetry_name}, N = {len(get_specific_pointset(symmetry_name, remove_duplicates_var=False))}")
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_aspect('equal')
+    fig.colorbar(im, ax=ax, label=f"D* (Min: {min(discrepancies)}, Max: {max(discrepancies)})")
 
-            return fig
+    return fig
 
 def updt(total, progress) -> None:
     barLength, status = 20, ""
@@ -185,4 +162,4 @@ if __name__ == "__main__":
     input_symmetry = ["1a", "2e", "3c", "4a", "5b", "6i", "6he", "6hf", "6gf", "6ge", "6fe", "7d", "8c", "9f", "9ed", "10d",
                       "11g", "11fe", "11fd", "11ed", "12d", "13d", "14e", "15d", "16d", "17f", "17ed"]
     
-    plot_heatmaps(["17f"], create_pdf_files=True, hexagonal_test=False)
+    plot_heatmaps(["17f"])

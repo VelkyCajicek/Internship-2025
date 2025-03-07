@@ -3,21 +3,20 @@ from tkinter import ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from plot_python import plot_heatmaps, get_specific_pointset, get_specific_discrepancy
 
+# Event handler for clicking on the heatmap
 def on_click(event):
     if event.xdata is not None and event.ydata is not None:
-        input_text = entry.get()  # Get user input
-
-        # Get decimal rounding (default to 2 if invalid)
+        input_text = entry.get()
         try:
             decimal_places = int(decimal_entry.get())
-            if decimal_places < 2 or decimal_places > 7:
-                decimal_places = 2  # Default fallback
+            if not 2 <= decimal_places <= 7:
+                decimal_places = 2
         except ValueError:
-            decimal_places = 2  # Default fallback
+            decimal_places = 2
 
-        # Fetch the pointset with user-defined settings
-        pointset = get_specific_pointset(input_text, event.xdata, event.ydata, decimal_points=decimal_places)
+        remove_duplicates_choice = duplicates_var.get()
         
+        pointset = get_specific_pointset(input_text, remove_duplicates_var = remove_duplicates_choice, x=event.xdata, y=event.ydata, decimal_points=decimal_places)
         discrepancy = get_specific_discrepancy(pointset)
 
         text_output.config(state=tk.NORMAL)
@@ -27,28 +26,29 @@ def on_click(event):
             f"Max discrepancy: {discrepancy:.{decimal_places}f}")
         text_output.config(state=tk.DISABLED)
 
+# Update the heatmap based on user settings
 def update_plot():
     input_text = entry.get()
-    cmap_choice = cmap_var.get()  # Get colormap choice
-    interpolation_choice = interpolation_var.get()  # Get interpolation choice
-    save_pdf = save_var.get()  # Check if the user wants to save the plot
+    cmap_choice = cmap_var.get()
+    interpolation_choice = interpolation_var.get()
+    selected_resolution = int(resolution_var.get()) 
+    save_pdf = save_var.get()
     remove_duplicates_choice = duplicates_var.get()
-    decimal_places_choice = int(decimal_entry.get())
-
-    # Validate resolution input
+    enlarge_choice = enlarge_var.get()
+    
     try:
-        selected_resolution = int(resolution_entry.get())
-        if selected_resolution < 10 or selected_resolution > 1000:
+        decimal_places_choice = int(decimal_entry.get())
+        if not 1 <= decimal_places_choice <= 7:
             raise ValueError
-        resolution_label.config(text="Resolution (10-1000):", fg="black")
     except ValueError:
-        resolution_label.config(text="Resolution (10-1000): *Invalid*", fg="red")
-        return
+        decimal_places_choice = 2
 
-    # Generate the heatmap with user settings
     fig = plot_heatmaps(
-        [input_text], selected_interpolation=interpolation_choice, selected_cmap=cmap_choice, 
-        resolution=selected_resolution, create_pdf_files=save_pdf, remove_duplicates=remove_duplicates_choice,
+        input_text, 
+        selected_interpolation=interpolation_choice, 
+        selected_cmap=cmap_choice, 
+        resolution=selected_resolution, 
+        remove_duplicates=remove_duplicates_choice,
         decimal_places=decimal_places_choice
     )
 
@@ -56,88 +56,113 @@ def update_plot():
     if canvas:
         canvas.get_tk_widget().destroy()
 
-    # Embed the new figure in Tkinter
     canvas = FigureCanvasTkAgg(fig, main_frame)
     canvas_widget = canvas.get_tk_widget()
-    canvas_widget.grid(row=3, column=0, sticky="nsew")  # Ensuring it expands properly
-
-    # Connect click event
+    canvas_widget.grid(row=3, column=0, columnspan=2, sticky="nsew")
     fig.canvas.mpl_connect("button_press_event", on_click)
 
-# Create main application window
+# Create main window
 root = tk.Tk()
 root.title("Heatmap Plotting")
-root.geometry("900x700")  # Increased width for settings panel
+root.geometry("1000x750")  # Fixed size
+root.resizable(False, False)  # Lock window size
+root.configure(bg="#f0f0f0")  # Light gray background
+
+# Apply a modern theme
+style = ttk.Style()
+style.theme_use("clam")  # Clean, modern theme
+style.configure("TButton", padding=5, font=("Arial", 10))
+style.configure("Sidebar.TLabel", background="#e0e0e0", font=("Arial", 10))
+style.configure("Error.TLabel", background="#e0e0e0", font=("Arial", 10), foreground="red")
+style.configure("Sidebar.TFrame", background="#e0e0e0")  # Subtle gray for sidebar
 
 # Configure grid layout
-root.columnconfigure(0, weight=3)  # Main frame gets more space
-root.columnconfigure(1, weight=1)  # Sidebar gets less space
+root.columnconfigure(0, weight=3)
+root.columnconfigure(1, weight=1)
 root.rowconfigure(0, weight=1)
 
 # Main Frame
-main_frame = tk.Frame(root)
+main_frame = ttk.Frame(root, padding=10)
 main_frame.grid(row=0, column=0, sticky="nsew")
+main_frame.columnconfigure(1, weight=1)
+main_frame.rowconfigure(3, weight=1)
 
-# Sidebar for settings
-sidebar = tk.Frame(root, padx=10, pady=10, relief="sunken", borderwidth=2)
+# Sidebar Frame
+sidebar = ttk.Frame(root, padding=10, relief="flat", style="Sidebar.TFrame")
 sidebar.grid(row=0, column=1, sticky="ns")
 
-# Configure main frame grid to expand
-main_frame.rowconfigure(3, weight=1)  # Heatmap should expand
-
-# Input field
-entry_label = tk.Label(main_frame, text="Enter symmetry:")
+# Input Section
+entry_label = ttk.Label(main_frame, text="Enter symmetry:")
 entry_label.grid(row=0, column=0, padx=5, pady=5, sticky="w")
-entry = tk.Entry(main_frame)
+entry = ttk.Entry(main_frame)
 entry.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
 
-# Button to update plot
-button = ttk.Button(main_frame, text="Plot", command=update_plot)
-button.grid(row=1, column=0, columnspan=2, pady=5)
+# Plot Button
+button = ttk.Button(main_frame, text="Generate Plot", command=update_plot, style="TButton")
+button.grid(row=1, column=0, columnspan=2, pady=10)
 
-# Scrollable text widget for pointset info
-text_output = tk.Text(main_frame, height=6, wrap="word", font=("Arial", 12))
-text_output.grid(row=2, column=0, columnspan=2, sticky="ew", padx=5, pady=5)
+# Text Output
+text_output = tk.Text(main_frame, height=6, wrap="word", font=("Arial", 11), bg="#ffffff", relief="flat", borderwidth=1)
+text_output.grid(row=2, column=0, columnspan=2, padx=5, pady=5, sticky="ew")
 text_output.config(state=tk.DISABLED)
 
-canvas = None  # Initialize empty plot
+canvas = None  # Placeholder for heatmap
 
-# Settings Panel (Sidebar)
-tk.Label(sidebar, text="Graph Settings", font=("Arial", 12, "bold")).grid(row=0, column=0, pady=5)
+# Sidebar Settings
+settings_label = ttk.Label(sidebar, text="Graph Settings", font=("Arial", 12, "bold"), style="Sidebar.TLabel")
+settings_label.grid(row=0, column=0, pady=(0, 10))
 
-# Colormap Dropdown
-tk.Label(sidebar, text="Colormap:").grid(row=1, column=0, pady=2, sticky="w")
-cmap_var = tk.StringVar(value="seismic")  # Default colormap
+# Colormap
+ttk.Label(sidebar, text="Colormap:", style="Sidebar.TLabel").grid(row=1, column=0, sticky="w", pady=2)
+cmap_var = tk.StringVar(value="seismic")
 cmap_dropdown = ttk.Combobox(sidebar, textvariable=cmap_var, values=["seismic", "viridis", "plasma", "coolwarm", "gray"])
 cmap_dropdown.grid(row=2, column=0, pady=2, sticky="ew")
 
-# Interpolation Dropdown
-tk.Label(sidebar, text="Interpolation:").grid(row=3, column=0, pady=2, sticky="w")
-interpolation_var = tk.StringVar(value="gaussian")  # Default interpolation
+# Interpolation
+ttk.Label(sidebar, text="Interpolation:", style="Sidebar.TLabel").grid(row=3, column=0, sticky="w", pady=2)
+interpolation_var = tk.StringVar(value="gaussian")
 interpolation_dropdown = ttk.Combobox(sidebar, textvariable=interpolation_var, values=["gaussian", "nearest", "bilinear", "bicubic"])
 interpolation_dropdown.grid(row=4, column=0, pady=2, sticky="ew")
 
-# Resolution Input
-resolution_label = tk.Label(sidebar, text="Resolution (10-1000):")
-resolution_label.grid(row=5, column=0, pady=2, sticky="w")
-resolution_entry = tk.Entry(sidebar)
-resolution_entry.grid(row=6, column=0, pady=2, sticky="ew")
-resolution_entry.insert(0, "100")  # Default resolution value
+# Resolution Dropdown (replacing entry)
+ttk.Label(sidebar, text="Resolution:", style="Sidebar.TLabel").grid(row=5, column=0, sticky="w", pady=2)
+resolution_var = tk.StringVar(value="100")  # Default to 100
+resolution_dropdown = ttk.Combobox(sidebar, textvariable=resolution_var, values=[10, 25, 50, 100, 250, 500, 1000])
+resolution_dropdown.grid(row=6, column=0, pady=2, sticky="ew")
 
-# Decimal Rounding Input
-tk.Label(sidebar, text="Decimal Places (1-7):").grid(row=7, column=0, pady=2, sticky="w")
+# Decimal Places
+ttk.Label(sidebar, text="Decimal Places (1-7):", style="Sidebar.TLabel").grid(row=7, column=0, sticky="w", pady=2)
 decimal_entry = tk.Entry(sidebar)
 decimal_entry.grid(row=8, column=0, pady=2, sticky="ew")
-decimal_entry.insert(0, "2")  # Default decimal places value
+decimal_entry.insert(0, "7")
 
-# Include Duplicate Points Option
+# Checkboxes
 duplicates_var = tk.BooleanVar(value=False)
-duplicates_checkbox = tk.Checkbutton(sidebar, text="Include Duplicate Points", variable=duplicates_var)
-duplicates_checkbox.grid(row=9, column=0, pady=5)
+duplicates_checkbox = ttk.Checkbutton(sidebar, text="Exclude Duplicate Points", variable=duplicates_var)
+duplicates_checkbox.grid(row=9, column=0, pady=5, sticky="w")
 
-# Save as PDF Option
 save_var = tk.BooleanVar(value=False)
-save_checkbox = tk.Checkbutton(sidebar, text="Save as PDF", variable=save_var)
-save_checkbox.grid(row=10, column=0, pady=5)
+save_checkbox = ttk.Checkbutton(sidebar, text="Save as PDF (Currently turned off)", variable=save_var)
+save_checkbox.grid(row=10, column=0, pady=5, sticky="w")
 
+enlarge_var = tk.BooleanVar(value=False)
+enlarge_checkbox = ttk.Checkbutton(sidebar, text="Enlarge", variable=enlarge_var)
+enlarge_checkbox.grid(row=11, column=0, pady=5, sticky="w")
+
+# Valid Input Options
+valid_inputs_label = ttk.Label(sidebar, font=("Arial", 12, "bold"), text="Valid Symmetry Inputs:", style="Sidebar.TLabel")
+valid_inputs_label.grid(row=12, column=0, pady=(10, 2), sticky="w")
+
+valid_inputs = "1a, 2e, 3c, 4a, 5b, 6i, 6he, 6hf, 6gf, 6ge, 6fe, 7d, 8c, 9f, 9ed, 10d, 11g, 11fe, 11fd, 11ed, 12d, 13d, 14e, 15d, 16d, 17f, 17ed"
+valid_inputs_text = tk.Text(sidebar, height=5, width=20, wrap="word", font=("Arial", 10), bg="#e0e0e0", relief="flat", borderwidth=0)
+valid_inputs_text.grid(row=13, column=0, pady=2, sticky="ew")
+valid_inputs_text.insert(tk.END, valid_inputs)
+valid_inputs_text.config(state=tk.DISABLED)  # Read-only
+
+# Add scrollbar for valid inputs
+scrollbar = ttk.Scrollbar(sidebar, orient="vertical", command=valid_inputs_text.yview)
+scrollbar.grid(row=13, column=1, sticky="ns")
+valid_inputs_text.config(yscrollcommand=scrollbar.set)
+
+# Start the application
 root.mainloop()
