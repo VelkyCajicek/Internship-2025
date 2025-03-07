@@ -13,8 +13,7 @@ def get_point_formulas(input_symmetry : str) -> list[str]:
     sys.path.append(os.path.join(os.path.dirname(__file__),'../'))
     with open("Data/wyckoff_positions_2D_Letters.txt") as data:
         lines = [line.strip() for line in data]
-    os.chdir("test")
-    
+    os.chdir("Transformations")
     # Formatting input data
     symmetry_info = list(filter(None, re.split(r'(\d+)', input_symmetry)))
     letters = list(symmetry_info[1])
@@ -101,4 +100,4 @@ def plot_heatmap(symmetry_name : str, resolution : int = 100, create_pdf_files :
     plt.close()
 
 if(__name__ == "__main__"):
-    print(plot_heatmap("17ed"))
+    print(plot_heatmap("17f"))

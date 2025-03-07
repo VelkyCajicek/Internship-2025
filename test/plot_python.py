@@ -59,7 +59,24 @@ def remove_duplicates(pointset : list[list[float]]) -> list[list]:
     
     return unique_points
 
-def calculate_discrepancies(all_points : list, symmetry_name : str, interpolations : int, diaphony : bool, hexagonal_test : bool) -> list[float]:
+def get_specific_pointset(symmetry_name : str, x : float, y : float, decimal_points : int = 2):
+    center_value = 0
+    
+    # For symmetries 5 and 9
+    if(symmetry_name[0] == "5" or symmetry_name[0] == "9"):
+        center_value = 0.5
+    
+    point_formulas = get_point_formulas(symmetry_name)
+    point_formulas = add_degree_of_freedom(point_formulas)
+    individual_formulas = [extract_parentheses(point_formulas[i]) for i in range(len(point_formulas))]
+    
+    all_points = []
+    [all_points.extend(element) for element in individual_formulas]
+
+    return generate_pointset(round((x + center_value), decimal_points), round((y + center_value), decimal_points), all_points)
+
+
+def calculate_discrepancies(all_points : list, symmetry_name : str, resolution : int, diaphony : bool, hexagonal_test : bool) -> list[float]:
     discrepancies = []
     run_value = 0
     center_value = 0
@@ -77,9 +94,9 @@ def calculate_discrepancies(all_points : list, symmetry_name : str, interpolatio
     
     # Calculates the D*
     
-    for x in range(0, interpolations):
-        for y in range(0, interpolations):
-            poinset = generate_pointset(round((x + center_value) / interpolations, 7), round((y + center_value) / interpolations, 7), all_points)
+    for x in range(0, resolution):
+        for y in range(0, resolution):
+            poinset = generate_pointset(round((x + center_value) / resolution, 7), round((y + center_value) / resolution, 7), all_points)
             #poinset = remove_duplicates(poinset)
             
             if(hexagonal_test):
@@ -91,7 +108,7 @@ def calculate_discrepancies(all_points : list, symmetry_name : str, interpolatio
                 discrepancies.append(Bundschuh_Zhu_Algorithm(poinset))
 
             run_value += 1
-            updt(interpolations**2, run_value)
+            updt(resolution**2, run_value)
     
     return discrepancies
 
@@ -158,8 +175,7 @@ def plot_heatmaps(symmetry_names : list[str], resolution : int = 100, diaphony :
             ax.set_aspect('equal')
             fig.colorbar(im, ax=ax, label=f"D* (Min: {min(discrepancies)}, Max: {max(discrepancies)})")
 
-            plt.show()
-            plt.close(fig)
+            return fig
 
 def updt(total, progress) -> None:
     barLength, status = 20, ""
