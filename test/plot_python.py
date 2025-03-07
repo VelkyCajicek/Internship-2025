@@ -7,8 +7,6 @@ from matplotlib.backends.backend_pdf import PdfPages
 
 sys.path.append(os.path.join(os.path.dirname(__file__),'../'))
 from Star_Discrepancy.QMC.Bundschuh_Zhu import Bundschuh_Zhu_Algorithm
-from Diaphony.diaphony import Zinterhof_Diaphony
-from Rhombus_Unit_Cell.shift_coordinates import hexagonal_transformation
 
 def get_point_formulas(input_symmetry : str) -> list[str]:
     lines = []
@@ -75,8 +73,10 @@ def get_specific_pointset(symmetry_name : str, x : float, y : float, decimal_poi
 
     return generate_pointset(round((x + center_value), decimal_points), round((y + center_value), decimal_points), all_points)
 
+def get_specific_discrepancy(pointset):
+    return Bundschuh_Zhu_Algorithm(pointset)
 
-def calculate_discrepancies(all_points : list, symmetry_name : str, resolution : int, diaphony : bool, hexagonal_test : bool) -> list[float]:
+def calculate_discrepancies(all_points : list, symmetry_name : str, resolution : int, remove_duplicates_var : bool, decimal_places : int) -> list[float]:
     discrepancies = []
     run_value = 0
     center_value = 0
@@ -96,16 +96,12 @@ def calculate_discrepancies(all_points : list, symmetry_name : str, resolution :
     
     for x in range(0, resolution):
         for y in range(0, resolution):
-            poinset = generate_pointset(round((x + center_value) / resolution, 7), round((y + center_value) / resolution, 7), all_points)
-            #poinset = remove_duplicates(poinset)
+            poinset = generate_pointset(round((x + center_value) / resolution, decimal_places), round((y + center_value) / resolution, decimal_places), all_points)
             
-            if(hexagonal_test):
-                poinset = hexagonal_transformation(poinset)
-                
-            if(diaphony):
-                discrepancies.append(Zinterhof_Diaphony(poinset))
-            else:
-                discrepancies.append(Bundschuh_Zhu_Algorithm(poinset))
+            if(remove_duplicates_var):
+                poinset = remove_duplicates(poinset)
+            
+            discrepancies.append(Bundschuh_Zhu_Algorithm(poinset))
 
             run_value += 1
             updt(resolution**2, run_value)
@@ -126,12 +122,8 @@ def add_degree_of_freedom(point_list : list[str]) -> list[str]:
     
     return point_list
 
-def plot_heatmaps(symmetry_names : list[str], resolution : int = 100, diaphony : bool = False, create_pdf_files : bool = False, hexagonal_test : bool = False):
+def plot_heatmaps(symmetry_names : list[str], selected_interpolation : str, selected_cmap : str, resolution : int, create_pdf_files : bool, remove_duplicates : bool, decimal_places : int):
     pdf_file_name = "heatmaps_duplicates.pdf"
-    if(hexagonal_test):
-        pdf_file_name = "heatmaps_hex.pdf"
-        # 13 - 17 for hexagonal test
-        symmetry_names = ["13d", "14e", "15d", "16d", "17f", "17ed"]
     if(create_pdf_files):
         with PdfPages(pdf_file_name) as pdf:
             for symmetry_name in symmetry_names:
@@ -139,10 +131,10 @@ def plot_heatmaps(symmetry_names : list[str], resolution : int = 100, diaphony :
                 all_points = []
                 
                 fig, ax = plt.subplots(figsize=(6, 6))  # Square figure to maintain aspect ratio
-                discrepancies = calculate_discrepancies(all_points, symmetry_name, resolution, diaphony, hexagonal_test)
+                discrepancies = calculate_discrepancies(all_points, symmetry_name, resolution, remove_duplicates, decimal_places)
                 heatmap_data = np.array(discrepancies).reshape(resolution, resolution)
 
-                im = ax.imshow(heatmap_data, cmap='seismic', extent=[0, 1, 0, 1], origin='lower', interpolation='gaussian') # interpolation='gaussian' ensures smooth edges
+                im = ax.imshow(heatmap_data, cmap=selected_cmap, extent=[0, 1, 0, 1], origin='lower', interpolation=selected_interpolation) # interpolation='gaussian' ensures smooth edges
                 
                 ax.set_title(f"{symmetry_name}, N = {len(all_points)}")
                 ax.set_xlabel('X')
@@ -162,12 +154,12 @@ def plot_heatmaps(symmetry_names : list[str], resolution : int = 100, diaphony :
             all_points = []
             
             fig, ax = plt.subplots(figsize=(6, 6))
-            discrepancies = calculate_discrepancies(all_points, symmetry_name, resolution, diaphony, hexagonal_test)
+            discrepancies = calculate_discrepancies(all_points, symmetry_name, resolution, remove_duplicates, decimal_places)
             print("D* calculation finished; Creating heatmap ...")
             
             heatmap_data = np.array(discrepancies).reshape(resolution, resolution)
 
-            im = ax.imshow(heatmap_data, cmap='seismic', extent=[0, 1, 0, 1], origin='lower', interpolation='gaussian') 
+            im = ax.imshow(heatmap_data, cmap=selected_cmap, extent=[0, 1, 0, 1], origin='lower', interpolation=selected_interpolation) 
 
             ax.set_title(symmetry_name)
             ax.set_xlabel('X')
