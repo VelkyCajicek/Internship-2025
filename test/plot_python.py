@@ -161,7 +161,7 @@ def plot_heatmaps(symmetry_names : list[str], selected_interpolation : str, sele
 
             im = ax.imshow(heatmap_data, cmap=selected_cmap, extent=[0, 1, 0, 1], origin='lower', interpolation=selected_interpolation) 
 
-            ax.set_title(symmetry_name)
+            ax.set_title(f"{symmetry_name}, N = {len(all_points)}")
             ax.set_xlabel('X')
             ax.set_ylabel('Y')
             ax.set_aspect('equal')
