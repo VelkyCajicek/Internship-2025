@@ -3,7 +3,6 @@ import os
 import re
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_pdf import PdfPages
 
 sys.path.append(os.path.join(os.path.dirname(__file__),'../'))
 from Star_Discrepancy.QMC.Bundschuh_Zhu import Bundschuh_Zhu_Algorithm
@@ -128,7 +127,7 @@ def add_degree_of_freedom(point_list : list[str]) -> list[str]:
     
     return point_list
 
-def plot_heatmaps(symmetry_name : str, selected_interpolation : str, selected_cmap : str, resolution : int, remove_duplicates : bool, decimal_places : int):
+def plot_heatmaps(symmetry_name : str, selected_interpolation : str = "gaussian", selected_cmap : str = "seismic", resolution : int = 100, remove_duplicates : bool = False, decimal_places : int = 7):
     fig, ax = plt.subplots(figsize=(6, 6))
     discrepancies = calculate_discrepancies(symmetry_name, resolution, remove_duplicates, decimal_places)
     print("D* calculation finished; Creating heatmap ...")
